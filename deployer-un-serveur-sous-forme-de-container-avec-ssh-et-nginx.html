@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+
+  <link rel="stylesheet" type="text/css" href="https://chrisbarriere.github.io/pelican/theme/stylesheet/style.min.css">
+  <link rel="stylesheet" type="text/css" href="https://chrisbarriere.github.io/pelican/theme/pygments/native.min.css">
+  <link rel="stylesheet" type="text/css" href="https://chrisbarriere.github.io/pelican/theme/font-awesome/css/fontawesome.css">
+  <link rel="stylesheet" type="text/css" href="https://chrisbarriere.github.io/pelican/theme/font-awesome/css/brands.css">
+  <link rel="stylesheet" type="text/css" href="https://chrisbarriere.github.io/pelican/theme/font-awesome/css/solid.css">
+
+
+    <link href="https://chrisbarriere.github.io/pelican/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Le calepin de Charloup Atom">
+
+
+    <link rel="shortcut icon" href="https://chrisbarriere.github.io/pelican/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="https://chrisbarriere.github.io/pelican/favicon.ico" type="image/x-icon">
+
+<meta name="author" content="Charloup" />
+<meta name="description" content="Suite de mon premier projet technique, où je dois construire une image docker. On veut que cette image permette de lancer un serveur Debian avec les services ssh et nginx. je veux également les fonctionnalités supplémentaires suivantes : on doit se logguer en ssh avec une clé privée on doit pouvoir …" />
+<meta name="keywords" content="docker, ssh, nginx, traefik">
+
+<meta property="og:site_name" content="Le calepin de Charloup"/>
+<meta property="og:title" content="Déployer un serveur sous forme de container avec ssh et nginx"/>
+<meta property="og:description" content="Suite de mon premier projet technique, où je dois construire une image docker. On veut que cette image permette de lancer un serveur Debian avec les services ssh et nginx. je veux également les fonctionnalités supplémentaires suivantes : on doit se logguer en ssh avec une clé privée on doit pouvoir …"/>
+<meta property="og:locale" content="fr"/>
+<meta property="og:url" content="https://chrisbarriere.github.io/pelican/deployer-un-serveur-sous-forme-de-container-avec-ssh-et-nginx.html"/>
+<meta property="og:type" content="article"/>
+<meta property="article:published_time" content="2019-05-23 15:25:00+02:00"/>
+<meta property="article:modified_time" content=""/>
+<meta property="article:author" content="https://chrisbarriere.github.io/pelican/author/charloup.html">
+<meta property="article:section" content="projet3"/>
+<meta property="article:tag" content="docker"/>
+<meta property="article:tag" content="ssh"/>
+<meta property="article:tag" content="nginx"/>
+<meta property="article:tag" content="traefik"/>
+<meta property="og:image" content="images/profile.jpeg">
+
+  <title>Le calepin de Charloup &ndash; Déployer un serveur sous forme de container avec ssh et nginx</title>
+</head>
+<body>
+  <aside>
+    <div>
+      <a href="https://chrisbarriere.github.io/pelican">
+        <img src="https://chrisbarriere.github.io/pelican/images/profile.jpeg" alt="Le calepin de Charloup" title="Le calepin de Charloup">
+      </a>
+      <h1><a href="https://chrisbarriere.github.io/pelican">Le calepin de Charloup</a></h1>
+
+<p>Mon premier site Pelican</p>
+      <nav>
+        <ul class="list">
+          <li><a href="https://chrisbarriere.github.io/pelican/pages/About.html#About">Bio</a></li>
+
+        </ul>
+      </nav>
+
+      <ul class="social">
+          <li>
+            <a  class="sc-gitlab" href="https://charloup.gitlab.com" target="_blank">
+            <i class="fab fa-gitlab">
+            </i>
+          </a></li>
+          <li>
+            <a  class="sc-github" href="https://github.com/ChrisBarriere" target="_blank">
+            <i class="fab fa-github">
+            </i>
+          </a></li>
+      </ul>
+    </div>
+  </aside>
+  <main>
+    <nav>
+      <a href="https://chrisbarriere.github.io/pelican">Accueil</a>
+
+      <a href="/archives.html">Archives</a>
+      <a href="/categories.html">Catégories</a>
+      <a href="/tags.html">Tags</a>
+
+      <a href="https://chrisbarriere.github.io/pelican/feeds/all.atom.xml">Atom</a>
+
+    </nav>
+
+<article class="single">
+  <header>
+    <h1 id="deployer-un-serveur-sous-forme-de-container-avec-ssh-et-nginx">Déployer un serveur sous forme de container avec ssh et nginx</h1>
+    <p>
+      Posté le 23/05/2019 à 15:25 dans <a href="https://chrisbarriere.github.io/pelican/category/projet3.html">projet3</a>
+
+    </p>
+  </header>
+
+  <div>
+    <p>Suite de mon premier projet technique, où je dois construire une image docker.</p>
+<p>On veut que cette image permette de lancer un serveur Debian avec les services ssh et nginx.</p>
+<p>je veux également les fonctionnalités supplémentaires suivantes :</p>
+<ul>
+<li>on doit se logguer en ssh avec une clé privée</li>
+<li>on doit pouvoir modifier les fichers du site web sans entrer dans le container</li>
+</ul>
+<p>Donc c'est parti.</p>
+<hr>
+<h3>Détail du Dockerfile</h3>
+<p>On part donc de l'image de base debian:stretch pour construire l'image</p>
+<div class="highlight"><pre><span></span><span class="k">FROM</span><span class="s"> debian:stretch</span>
+</pre></div>
+
+
+<p>On ajoute des étiquettes à notre image :</p>
+<div class="highlight"><pre><span></span><span class="k">LABEL</span> <span class="nv">version</span><span class="o">=</span><span class="s2">&quot;1.0&quot;</span>
+<span class="k">LABEL</span> <span class="nv">maintainer</span><span class="o">=</span><span class="s2">&quot;christophe.barriere@developpement-durable.gouv.fr&quot;</span>
+<span class="k">LABEL</span> <span class="nv">description</span><span class="o">=</span><span class="s2">&quot;Image Docker pour un OS Debian avec: \</span>
+<span class="s2">- connexion SSH activée, \</span>
+<span class="s2">- serveur web Nginx, \</span>
+<span class="s2">- un volume /site_files qui pourra être monté à partir de l&#39;hôte pour modifier dynamiquement notre site&quot;</span>
+</pre></div>
+
+
+<p>L'installation est automatique donc on ne veut pas que debconf pose des quetions lors de l'installation ou la configuration de paquets :</p>
+<div class="highlight"><pre><span></span><span class="k">ENV</span> DEBIAN_FRONTEND noninteractive
+</pre></div>
+
+
+<p>On ne veut pas de bootloader :</p>
+<div class="highlight"><pre><span></span><span class="k">ENV</span> INITRD No
+</pre></div>
+
+
+<p>On met à jour la liste des paquets, on installe nginx, openssh-server et les locales sans demander de confirmation (option -y), sans installer les paquets recommandés en plus (option --no-install-recommends) pour pouvoir limiter la taille de l'image et on nettoie le cache apt (également pour limiter la taille de l'image)<br>
+NB: Tout en une seule commande Dockerfile pour pouvoir optimiser les couches de notre image.</p>
+<div class="highlight"><pre><span></span><span class="k">RUN</span> apt-get update <span class="se">\</span>
+ <span class="o">&amp;&amp;</span> apt-get install -y --no-install-recommends nginx openssh-server locales <span class="se">\</span>
+ <span class="o">&amp;&amp;</span> apt-get clean <span class="se">\</span>
+ <span class="o">&amp;&amp;</span> rm -rf /var/lib/apt/lists/*
+</pre></div>
+
+
+<p>Gestion de la locale (fr_FR.UTF-8) et de la timezone (Europe/Paris) :</p>
+<div class="highlight"><pre><span></span><span class="k">RUN</span> ln -fs /usr/share/zoneinfo/Europe/Paris /etc/localtime <span class="se">\</span>
+  <span class="o">&amp;&amp;</span> dpkg-reconfigure -f noninteractive tzdata <span class="se">\</span>
+  <span class="o">&amp;&amp;</span> <span class="nb">echo</span> fr_FR.UTF-8 UTF-8 &gt; /etc/locale.gen <span class="o">&amp;&amp;</span> locale-gen --purge en_US.UTF-8
+</pre></div>
+
+
+<p>Ajout de la configuration nginx dans l'image.<br>
+NB: deux choses importantes dans cette configuration :</p>
+<ul>
+<li>les fichiers du site seront dans le répertoire <code>/site_files</code> du container</li>
+<li>nginx sera démarré en mode daemon off pour qu'il reste au premier plan afin que docker puisse suivre correctement le processus (sinon le conteneur s'arrêtera immédiatement après le démarrage)</li>
+</ul>
+<div class="highlight"><pre><span></span><span class="k">ADD</span> nginx.conf /etc/nginx/nginx.conf
+</pre></div>
+
+
+<p>On veut un volume docker pour la persistence des données du site (le répertoire qui contient les fichiers servis par Nginx).<br>
+NB : le mieux sera de faire un montage de type bind sur ce volume lorqu'on lancera le container car de cette façon on pourra modifier les fichiers du site web directement dans l'hôte et non pas dans le container).</p>
+<div class="highlight"><pre><span></span><span class="k">VOLUME</span><span class="s"> /site_files</span>
+</pre></div>
+
+
+<p>Il doit y avoir un répertoire /var/run/sshd pour le pidfile du serveur ssh.</p>
+<div class="highlight"><pre><span></span><span class="k">RUN</span> mkdir /var/run/sshd
+</pre></div>
+
+
+<p>On ajoute notre clé publique pour que l'utilisateur root puisse se connecter avec sa clé privée en ssh.</p>
+<div class="highlight"><pre><span></span><span class="k">ADD</span> id_rsa.pub /root/.ssh/root-connect_id_rsa.pub
+<span class="k">RUN</span> cat /root/.ssh/root-connect_id_rsa.pub &gt; /root/.ssh/authorized_keys
+</pre></div>
+
+
+<p>On modifie la configuration du serveur SSH pour autoriser root à se logguer en SSH<br>
+NB : J'ai fait simple. Idéalement il faudrait créer un nouvel utilisateur avec les droits sudo.</p>
+<div class="highlight"><pre><span></span><span class="k">RUN</span> sed -i <span class="s1">&#39;s/#PermitRootLogin prohibit-password/PermitRootLogin yes/&#39;</span> /etc/ssh/sshd_config
+</pre></div>
+
+
+<p>On expose le port 22 (port pour le SSH) et le port 80 (pour nginx) dans le container.<br>
+NB : Il faudra mapper correctement ces ports lorsqu'on lance le container. En effet le port 22 par exemple est déjà utilisé dans la machine hôte.</p>
+<div class="highlight"><pre><span></span><span class="k">EXPOSE</span><span class="s"> 22 80</span>
+</pre></div>
+
+
+<p>Le container sera lancé par l'utilisateur root.</p>
+<div class="highlight"><pre><span></span><span class="k">USER</span><span class="s"> root</span>
+</pre></div>
+
+
+<p>On redirige les logs de nginx vers les sorties standards (de cette façon on pourra voir les logs avec la commande <code>docker logs &lt;nom_du_container&gt;</code>).</p>
+<div class="highlight"><pre><span></span><span class="k">RUN</span> ln -sf /dev/stdout /var/log/nginx/access.log <span class="se">\</span>
+    <span class="o">&amp;&amp;</span> ln -sf /dev/stderr /var/log/nginx/error.log
+</pre></div>
+
+
+<p>On ajoute la commande de lancement à la racine du container.<br>
+NB : cette commande lancera dans un même processus (que docker peut suivre) à la fois le serveur ssh et le serveur nginx.</p>
+<div class="highlight"><pre><span></span><span class="k">ADD</span> container_command.sh /
+</pre></div>
+
+
+<p>On definit la commande de lancement du container.</p>
+<div class="highlight"><pre><span></span><span class="k">CMD</span> <span class="p">[</span><span class="s2">&quot;sh&quot;</span><span class="p">,</span> <span class="s2">&quot;/container_command.sh&quot;</span><span class="p">]</span>
+</pre></div>
+
+
+<hr>
+<h3>Construction de l'image</h3>
+<p>Dans le répertoire de notre projet, il faut lancer la commande suivante :</p>
+<div class="highlight"><pre><span></span>docker build --rm -t registry.docker.charloup.test:5000/nginx_with_ssh:1 .
+</pre></div>
+
+
+<p>Explications :</p>
+<ul>
+<li>
+<p>option <code>--rm</code> : permet de supprimer les images intermédiaires après un build réussi</p>
+</li>
+<li>
+<p>option <code>-t</code> pour donner un nom à mon image (j'ai mis ma registry comme ça je pourrai la pousser par la suite avec <code>docker push registry.docker.charloup.test:5000/nginx_with_ssh:1</code>)</p>
+</li>
+<li>
+<p>on envoie le répertoire courant comme contexte pour construire l'image</p>
+</li>
+</ul>
+<hr>
+<h3>Lancement du container</h3>
+<p>Dans le répertoire de notre projet, il faut lancer la commande suivante :</p>
+<div class="highlight"><pre><span></span>docker run -d <span class="se">\</span>
+  -p <span class="m">2222</span>:22 -p <span class="m">8080</span>:80 <span class="se">\</span>
+  --mount <span class="nv">type</span><span class="o">=</span>bind,source<span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">&quot;</span>/site_files,target<span class="o">=</span>/site_files <span class="se">\</span>
+  --name nginx_ssh <span class="se">\</span>
+  registry.docker.charloup.test:5000/nginx_with_ssh:1
+</pre></div>
+
+
+<p>Explications :</p>
+<ul>
+<li>
+<p>option <code>-d</code> : lancement en mode détaché</p>
+</li>
+<li>
+<p>option <code>-p 2222:22</code> : on mappe le port 22 du container sur le port 2222 de notre machine hôte. De cette manière on pourra se connecter en ssh dans le container en utilisant localhost sur le port 2222</p>
+</li>
+<li>
+<p>option <code>-p 8080:80</code> : on mappe le port 80 du container sur le port 8080 de la machine hôte. Notre serveur web nginx dans le container sera donc accessible via http://localhost:8080 dans la machine hôte</p>
+</li>
+<li>
+<p>option <code>--mount type=bind,source="$(pwd)"/site_files,target=/site_files</code> : on monte le répertoire site_files de notre machine hôte dans le répertoire <code>/site_files</code> du container (celui qui est servi par nginx)</p>
+</li>
+<li>
+<p>option <code>--name nginx_ssh</code> : on donne un nom au container. Par exemple ensuite pour voir les processus qui tournent dans le container, on fait <code>docker top nginx_ssh</code></p>
+</li>
+<li>
+<p>on lance le container à partir de l'image <code>registry.docker.charloup.test:5000/nginx_with_ssh:1</code> précédemment construite</p>
+</li>
+</ul>
+<hr>
+<h3>Vérification</h3>
+<ul>
+<li>
+<p>Site web : <code>curl http://localhost:8080</code> nous retourne <code>Ceci est l'index de mon site servi Nginx dans un container Docker</code> qui est le contenu de mon fichier site_files/index.html dans la machine hôte</p>
+</li>
+<li>
+<p>Modification du site : <code>echo 'Mes modifications' &gt; ./site_files/index.html &amp;&amp; curl http://localhost:8080</code> m'affiche bien <code>Mes modifications</code></p>
+</li>
+<li>
+<p>Connexion ssh : <code>ssh -i chemin_vers_ma_cle_privee root@localhost -p 2222</code> =&gt; OK on est bien connecté en ssh dans le container</p>
+</li>
+</ul>
+<hr>
+<h3>Remarques</h3>
+<ul>
+<li>
+<p>Un container avec ssh n'est pas forcément nécessaire. Si il y a bash dans le container, on peut faire <code>docker exec -it nom_du_container bash</code> pour se connecter dans un container qui est démarré.</p>
+</li>
+<li>
+<p>Je peux lancer mon container pour être servi par traefik afin de ne pas avoir à mapper le port 80 du container. Voilà la commande à utiliser:</p>
+</li>
+</ul>
+<div class="highlight"><pre><span></span>docker run -d <span class="se">\</span>
+  -p <span class="m">2222</span>:22 <span class="se">\</span>
+  --mount <span class="nv">type</span><span class="o">=</span>bind,source<span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">&quot;</span>/site_files,target<span class="o">=</span>/site_files <span class="se">\</span>
+  --name nginx_ssh <span class="se">\</span>
+  --network<span class="o">=</span>traefik-net <span class="se">\</span>
+  --label traefik.enable<span class="o">=</span><span class="nb">true</span> <span class="se">\</span>
+  --label traefik.frontend.entryPoints<span class="o">=</span>http <span class="se">\</span>
+  --label traefik.frontend.rule<span class="o">=</span>Host:nginx.charloup.test <span class="se">\</span>
+  --label traefik.port<span class="o">=</span><span class="m">80</span> <span class="se">\</span>
+  --label traefik.backend<span class="o">=</span>nginx <span class="se">\</span>
+  registry.docker.charloup.test:5000/nginx_with_ssh:1
+</pre></div>
+
+
+<p>et on vérifie que cela fonctionne avec <code>curl -H "Host:nginx.charloup.test" localhost</code></p>
+<hr>
+  </div>
+  <div class="tag-cloud">
+    <p>
+      <a href="https://chrisbarriere.github.io/pelican/tag/docker.html">docker</a>
+      <a href="https://chrisbarriere.github.io/pelican/tag/ssh.html">ssh</a>
+      <a href="https://chrisbarriere.github.io/pelican/tag/nginx.html">nginx</a>
+      <a href="https://chrisbarriere.github.io/pelican/tag/traefik.html">traefik</a>
+    </p>
+  </div>
+
+  <div class="neighbors">
+    <a class="btn float-left" href="https://chrisbarriere.github.io/pelican/creer-un-environnement-de-travail-local-avec-vagrant.html" title="Créer un environnement de travail local avec Vagrant">
+      <i class="fa fa-angle-left"></i> Article précédent
+    </a>
+  </div>
+
+</article>
+
+    <footer>
+<p>&copy; Le calepin de Charloup 2019</p>
+<p>Propulsé par <a href="http://getpelican.com" target="_blank">Pelican</a> - <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> thème par <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a> et simplifié par moi-même</p>    </footer>
+  </main>
+</body>
+</html>
