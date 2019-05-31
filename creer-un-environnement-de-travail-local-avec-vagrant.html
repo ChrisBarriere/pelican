@@ -21,12 +21,12 @@
     <link rel="icon" href="https://chrisbarriere.github.io/pelican/favicon.ico" type="image/x-icon">
 
 <meta name="author" content="Charloup" />
-<meta name="description" content="Le premier projet technique de ma formation consiste à mettre en place un environnement de travail local sous forme de machine virtuelle dans lequel on ajoutera des outils tels que Ansible ou Docker. Ca c&#39;est la demande minimale mais on va voir par la suite que je vais installer d&#39;autres …" />
+<meta name="description" content="Le premier projet technique de ma formation consiste à mettre en place un environnement de travail local sous forme de machine virtuelle dans lequel on ajoutera des outils tels que Ansible ou Docker. Ça c&#39;est la demande minimale mais on va voir par la suite que je vais installer d&#39;autres …" />
 <meta name="keywords" content="vagrant, docker, ansible, traefik, mailhog, cntlm">
 
 <meta property="og:site_name" content="Le calepin de Charloup"/>
 <meta property="og:title" content="Créer un environnement de travail local avec Vagrant"/>
-<meta property="og:description" content="Le premier projet technique de ma formation consiste à mettre en place un environnement de travail local sous forme de machine virtuelle dans lequel on ajoutera des outils tels que Ansible ou Docker. Ca c&#39;est la demande minimale mais on va voir par la suite que je vais installer d&#39;autres …"/>
+<meta property="og:description" content="Le premier projet technique de ma formation consiste à mettre en place un environnement de travail local sous forme de machine virtuelle dans lequel on ajoutera des outils tels que Ansible ou Docker. Ça c&#39;est la demande minimale mais on va voir par la suite que je vais installer d&#39;autres …"/>
 <meta property="og:locale" content="fr"/>
 <meta property="og:url" content="https://chrisbarriere.github.io/pelican/creer-un-environnement-de-travail-local-avec-vagrant.html"/>
 <meta property="og:type" content="article"/>
@@ -96,11 +96,12 @@
   </header>
 
   <div>
-    <p>Le premier projet technique de ma formation consiste à mettre en place un environnement de travail local sous forme de machine virtuelle dans lequel on ajoutera des outils tels que Ansible ou Docker.<br>
-Ca c'est la demande minimale mais on va voir par la suite que je vais installer d'autres outils afin de faciliter l'usage de ma machine de développement.  </p>
+    <p>Le premier projet technique de ma formation consiste à mettre en place un environnement de travail local sous forme de machine virtuelle dans lequel on ajoutera des outils tels que Ansible ou Docker.</p>
+<p>Ça c'est la demande minimale mais on va voir par la suite que je vais installer d'autres outils afin de faciliter l'usage de ma machine de développement.  </p>
 <hr>
-<h3>Introduction</h3>
-<p><strong>Contraintes:</strong></p>
+<p><br></p>
+<h3><strong>1. Introduction</strong></h3>
+<p><strong> 1.1 Contraintes:</strong></p>
 <ul>
 <li>
 <p>Je dispose d'une machine Windows 10 avec Hyper-v activé donc il n'y a plus qu'à oublier les outils tels que Virtualbox ou VMWare car il est impossible de les faire cohabiter avec Hyper-V.</p>
@@ -112,7 +113,8 @@ Ca c'est la demande minimale mais on va voir par la suite que je vais installer 
 <p>Je veux limiter le nombre de logiciels installés sur ma machine</p>
 </li>
 </ul>
-<p><strong>Fonctionnalités souhaitées:</strong></p>
+<p><br><br></p>
+<p><strong> 1.2 Fonctionnalités souhaitées:</strong></p>
 <ul>
 <li>
 <p>Je souhaite pouvoir disposer d'un environnement de développement évolutif et qui peut être configuré, détruit et redéployé très simplement.</p>
@@ -130,7 +132,8 @@ Ca c'est la demande minimale mais on va voir par la suite que je vais installer 
 <p>Je veux pouvoir tester avec un vrai serveur stmp et pouvoir consulter les mails émis par mes applications.</p>
 </li>
 </ul>
-<p><strong>Solution retenue</strong></p>
+<p><br><br></p>
+<p><strong> 1.3 Solution retenue</strong></p>
 <ul>
 <li>
 <p>Pour limiter le nombre de logiciels à installer, et permettre la possibilité de configurer facilement mon environnement, je vais donc déployer mon environnement de développement dans une machine virtuelle Hyper-V à l'aide de Vagrant.</p>
@@ -157,7 +160,10 @@ Ca c'est la demande minimale mais on va voir par la suite que je vais installer 
 <p>Je mets en place Traefik (❤️❤️) comme reverse proxy : cela me permet d'avoir accès à mes services de type web hébergés dans des containers docker via leur nom DNS</p>
 </li>
 <li>
-<p>Je mettrai en place un proxy CTNLM sur le port 3128 de ma machine virtuelle. Tous mes services (Git, Docker, Variables d'environnement) seront configurés pour utiliser le proxy CNTLM. De cette façon j'aurai juste à changer la configuration de CNTLM si je ne suis pas derrière un proxy. Pour configurer le proxy dans les services, j'utiliserai le plugin ProxyConf de Vagrant.</p>
+<p>Je mettrai en place un proxy CNTLM sur le port 3128 de ma machine virtuelle. Tous mes services (Git, Docker, Variables d'environnement) seront configurés pour utiliser le proxy CNTLM. De cette façon j'aurai juste à changer la configuration de CNTLM si je ne suis pas derrière un proxy.</p>
+</li>
+<li>
+<p>Pour configurer le proxy dans les services, j'utiliserai le plugin ProxyConf de Vagrant.</p>
 </li>
 <li>
 <p>Des montages réseau de type smb permettront de partager des fichiers entre la machine hôte et la machine virtuelle.</p>
@@ -169,75 +175,99 @@ Ca c'est la demande minimale mais on va voir par la suite que je vais installer 
 <hr>
 <p>NB : la plateforme de développement étant sur Windows 10, les commandes seront à lancer avec un Powershell avec des droits d'administrateur.</p>
 <hr>
-<h3>Prérequis</h3>
+<p><br></p>
+<h3><strong>2. Prérequis</strong></h3>
 <ul>
 <li>
 <p>Un PC avec Windows 10, au moins 4 Go de mémoire et sur lequel on bénéficie des droits d'administrateur.</p>
 </li>
 <li>
-<p>On doit s'assurer que Hyper-V est activé :<br>
-<code>Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All</code></p>
+<p>On doit s'assurer que Hyper-V est activé :</p>
+<p><code>Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All</code></p>
 <p>(Remarque : un redémarrage sera peut-être nécessaire)</p>
 </li>
 <li>
-<p>Pour faire fonctionner des machines virtuelles récentes dans Hyper-V, il faut s'assurer d'avoir une version de configuration des machines virtuelles au moins égale à 8.3.<br>
-    Pour connaître la version supportée :<br>
-<code>Get-VMHostSupportedVersion -Default</code></p>
+<p>Pour faire fonctionner des machines virtuelles récentes dans Hyper-V, il faut s'assurer d'avoir une version de configuration des machines virtuelles au moins égale à 8.3.</p>
+<p>Pour connaître la version supportée : <code>Get-VMHostSupportedVersion -Default</code></p>
 <p>Si c'est trop bas, c'est que la version de Windows n'est pas à jour. Il faut au moins installer la mise-à-jour 18.09 de Windows 10 (prévoir entre 1h et 2h pour cette mise-à-jour....)</p>
 </li>
 <li>
-<p>Avoir installé Vagrant à l'aide du paquet MSI récupéré sur le site officiel.<br>
-    Pour la dernière version (actuellement 2.2.4) en 64 bits c'est ici :<br>
-<a href="https://releases.hashicorp.com/vagrant/2.2.4/vagrant_2.2.4_x86_64.msi" title="lien pour télécharger vagrant">https://releases.hashicorp.com/vagrant/2.2.4/vagrant_2.2.4_x86_64.msi</a></p>
+<p>Avoir installé Vagrant à l'aide du paquet MSI récupéré sur le site officiel.</p>
+<p>Pour la dernière version (actuellement 2.2.4) en 64 bits c'est ici : <a href="https://releases.hashicorp.com/vagrant/2.2.4/vagrant_2.2.4_x86_64.msi" title="lien pour télécharger vagrant">https://releases.hashicorp.com/vagrant/2.2.4/vagrant_2.2.4_x86_64.msi</a></p>
 </li>
 <li>
-<p>Avoir récupérer les sources de ce projet sur gitlab :<br>
-<code>git clone https://gitlab.com/charloup/my-vagrant-environment.git</code></p>
+<p>Avoir récupérer les sources de ce projet sur gitlab :</p>
+<p><code>git clone https://gitlab.com/charloup/my-vagrant-environment.git</code></p>
 </li>
 </ul>
 <hr>
-<h3>Création et utilisation de la machine virtuelle</h3>
-<p><strong> Créer un fichier d'environnement </strong></p>
+<p><br></p>
+<h3><strong>3. Création et utilisation de la machine virtuelle</strong></h3>
+<p><strong> 3.1 Créer un fichier d'environnement </strong></p>
 <p>Mon projet doit comporter un fichier d'environnement <code>powershell\.env.ps1</code></p>
 <p>Ce fichier doit être créé dans le même format que le fichier <code>.\powershell\.env.ps1-example</code> avec les valeurs correspondant à notre environnement.</p>
-<p>On peut donc créer le fichier par recopie du fichier exemple et le modifier:</p>
+<p>On peut donc créer le fichier par recopie du fichier exemple et le modifier :</p>
 <div class="highlight"><pre><span></span><span class="nb">Copy-Item</span> <span class="p">.\</span><span class="n">powershell</span><span class="p">\.</span><span class="n">env</span><span class="p">.</span><span class="n">ps1-example</span> <span class="n">-Destination</span> <span class="p">.\</span><span class="n">powershell</span><span class="p">\.</span><span class="n">env</span><span class="p">.</span><span class="n">ps1</span>
 <span class="n">notepad</span> <span class="p">.\</span><span class="n">powershell</span><span class="p">\.</span><span class="n">env</span><span class="p">.</span><span class="n">ps1</span>
 </pre></div>
 
 
-<p><strong> Préparer son réseau Hyper-V </strong></p>
-<p>Il suffit de lancer le script:</p>
+<p><br><br></p>
+<p><strong> 3.2 Préparer son réseau Hyper-V </strong></p>
+<p>Il suffit de lancer le script :</p>
 <div class="highlight"><pre><span></span><span class="p">.\</span><span class="n">powershell</span><span class="p">\</span><span class="n">prepare_hyperv</span><span class="p">.</span><span class="n">ps1</span>
 </pre></div>
 
 
 <p>Ce script permet :</p>
 <ul>
-<li>de s'assurer que le réseau utilisé par ICS aura bien une adresse en <code>192.168.137.0/24</code></li>
-<li>de créer un switch interne Hyper-V avec le nom <code>Vagrant</code></li>
-<li>de partager la connexion internet (défini par la variable d'environnement <code>$env:EXTERNAL_CONNECTION_NAME</code>) avec notre réseau interne dans lequel sera créé la machine virtuelle</li>
+<li>
+<p>de s'assurer que le réseau utilisé par ICS aura bien une adresse en <code>192.168.137.0/24</code></p>
+</li>
+<li>
+<p>de créer un switch interne Hyper-V avec le nom <code>Vagrant</code></p>
+</li>
+<li>
+<p>de partager la connexion internet (défini par la variable d'environnement <code>$env:EXTERNAL_CONNECTION_NAME</code>) avec notre réseau interne dans lequel sera créé la machine virtuelle</p>
+</li>
 </ul>
-<p><strong> Préparer la machine virtuelle </strong></p>
-<p>On lance le script:</p>
+<p><br><br></p>
+<p><strong> 3.3 Préparer la machine virtuelle </strong></p>
+<p>On lance le script :</p>
 <div class="highlight"><pre><span></span><span class="p">.\</span><span class="n">powershell</span><span class="p">\</span><span class="n">prepare_vm</span><span class="p">.</span><span class="n">ps1</span>
 </pre></div>
 
 
-<p>Ce script permet:</p>
+<p>Ce script permet :</p>
 <ul>
-<li>d'installer le plugin ProxyConf de Vagrant</li>
-<li>d'installer le plugin HostManager de Vagrant</li>
-<li>de récupérer la box generic/debian9 pour le provider hyperv</li>
-<li>de lancer la machine via vagrant et de la configurer :</li>
+<li>
+<p>d'installer le plugin ProxyConf de Vagrant</p>
+</li>
+<li>
+<p>d'installer le plugin HostManager de Vagrant</p>
+</li>
+<li>
+<p>de récupérer la box generic/debian9 pour le provider hyperv</p>
+</li>
+<li>
+<p>de lancer la machine via vagrant et de la configurer :</p>
+<ul>
 <li>via le shell pour la résolution de nom</li>
-<li>via ansible_local pour configurer le nom d'hôte, le fqdn, l'ip, le ntp, la locale, installer git, des éditeurs de texte (vim, nano), le proxy cntlm et docker</li>
-<li>de redémarrer la machine et de la provisionner avec les services suivants :</li>
+<li>via ansible_local pour configurer le nom d'hôte, le fqdn, l'ip, le ntp, la locale, installer git, des éditeurs de texte (vim, nano), le proxy Cntlm et Docker</li>
+</ul>
+</li>
+<li>
+<p>de redémarrer la machine et de la provisionner avec les services suivants :</p>
+<ul>
 <li>Registry Docker</li>
 <li>Reverse proxy Traefik</li>
 <li>Serveur STMP Mailhog</li>
 </ul>
-<p><strong> Script à lancer en cas de modification de connexion internet et de proxy </strong></p>
+</li>
+</ul>
+<p>NB : Lors du premier up de la machine, Vagrant posera une question pour savoir quel switch utilisé pour la machine virtuelle. Il faudra donc choisir <strong>Vagrant</strong> qui est le switch qui a été créé à l'étape précdente.</p>
+<p><br><br></p>
+<p><strong> 3.4 Script à lancer en cas de modification de connexion internet et de proxy </strong></p>
 <p>Il suffit de modifier les variables <code>$env:EXTERNAL_CONNECTION_NAME</code>, <code>$env:EXTERNAL_PROXY_URL</code> et <code>$env:EXTERNAL_PROXY_NO_PROXY_RULES</code> dans le fichier <code>powershell\.env.ps1</code> et ensuite de lancer un script :</p>
 <div class="highlight"><pre><span></span><span class="n">notepad</span> <span class="p">.\</span><span class="n">powershell</span><span class="p">\.</span><span class="n">env</span><span class="p">.</span><span class="n">ps1</span>
 <span class="p">.\</span><span class="n">powershell</span><span class="p">\</span><span class="n">change_connection</span><span class="p">.</span><span class="n">ps1</span>
@@ -246,163 +276,193 @@ Ca c'est la demande minimale mais on va voir par la suite que je vais installer 
 
 <p>ce script va :</p>
 <ul>
-<li>modifier le partage de connexion internet</li>
-<li>démarrer la machine si elle n'est pas déjà lancée</li>
-<li>provisionner la machine pour modifier la configuration de cntlm</li>
+<li>
+<p>modifier le partage de connexion internet</p>
+</li>
+<li>
+<p>démarrer la machine si elle n'est pas déjà lancée</p>
+</li>
+<li>
+<p>provisionner la machine pour modifier la configuration de cntlm</p>
+</li>
 </ul>
 <hr>
-<h3>Les explications</h3>
-<p><strong> les CmdLet powershell </strong></p>
+<p><br></p>
+<h3><strong>4. Les explications</strong></h3>
+<p><strong> 4.1 les CmdLet powershell </strong></p>
 <p>Afin d'automatiser le plus possible le déploiement de ma machine, j'ai créé deux cmdlet powershell disponibles dans le répertoire <code>.\powershell\lib</code> :</p>
 <ul>
 <li>
-<p><code>createVirtualSwitch.ps1</code> qui permet de créer un switch Hyper-V de type interne et son réseau NAT associé.<br>
-   On veut un type interne pour qu'il ne soit pas nécessaire de changer la machine de switch à chaque fois qu'on change de type de connexion.<br>
-   De plus notre machine virtuelle aura ainsi une adresse IP statique en <em>192.168.137.xxx</em>.</p>
+<p><code>createVirtualSwitch.ps1</code> qui permet de créer un switch Hyper-V de type interne et son réseau NAT associé.</p>
+<p>On veut un type interne pour qu'il ne soit pas nécessaire de changer la machine de switch à chaque fois qu'on change de type de connexion.</p>
+<p>De plus notre machine virtuelle aura ainsi une adresse IP statique en <code>192.168.137.xxx</code>.</p>
 </li>
 <li>
-<p><code>manageSharingInternetConnection.ps1</code> qui permet de gérer le partage de connexion internet entre une connexion principale (Ethernet ou Wifi) et mon switch Hyper-V interne.<br>
-   Ainsi la machine hôte aura l'adresse ip <em>192.168.137.1</em> qui fera office de serveur de nom pour ma machine virtuelle.</p>
+<p><code>manageSharingInternetConnection.ps1</code> qui permet de gérer le partage de connexion internet entre une connexion principale (Ethernet ou Wifi) et mon switch Hyper-V interne.</p>
+<p>Ainsi la machine hôte aura l'adresse ip <code>192.168.137.1</code>. On pourra donc utiliser cette adresse comme serveur de nom pour la machine virtuelle.</p>
 </li>
 </ul>
-<p><strong> Vagrantfile </strong></p>
+<p><br><br></p>
+<p><strong> 4.2 Vagrantfile </strong></p>
 <p>Pour fonctionner Vagrant utilise un Vagrantfile dont je vais détailler le contenu.</p>
-<p>Le nom de la machine pour vagrant (celui qu'on voit quand on fait <code>vagarant global-status</code>) :</p>
-<div class="highlight"><pre><span></span><span class="n">config</span><span class="p">.</span><span class="n">vm</span><span class="p">.</span><span class="n">define</span> <span class="n">ENV</span><span class="p">[</span><span class="s1">&#39;VM_HYPERV_NAME&#39;</span><span class="p">]</span>
+<p><br><br>
+Le nom de la machine pour vagrant (celui qu'on voit quand on fait <code>vagarant global-status</code>) :</p>
+<div class="highlight"><pre><span></span><span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">define</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;VM_HYPERV_NAME&#39;</span><span class="o">]</span>
 </pre></div>
 
 
-<p>La box qui sera utilisée :</p>
-<div class="highlight"><pre><span></span><span class="n">config</span><span class="p">.</span><span class="n">vm</span><span class="p">.</span><span class="n">box</span> <span class="o">=</span> <span class="ss">&quot;generic/debian9&quot;</span>
+<p><br><br>
+La box qui sera utilisée :</p>
+<div class="highlight"><pre><span></span><span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">box</span> <span class="o">=</span> <span class="s2">&quot;generic/debian9&quot;</span>
 </pre></div>
 
 
-<p>Le provider utilisé pour notre machine virtuelle, dans mon cas c'est hyperv :</p>
-<div class="highlight"><pre><span></span><span class="n">config</span><span class="p">.</span><span class="n">vm</span><span class="p">.</span><span class="n">provider</span> <span class="ss">&quot;hyperv&quot;</span>
+<p><br><br>
+Le provider utilisé pour notre machine virtuelle, dans mon cas c'est hyperv :</p>
+<div class="highlight"><pre><span></span><span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">provider</span> <span class="s2">&quot;hyperv&quot;</span>
 </pre></div>
 
 
-<p>La configuration spécifique au provider hyperv.<br>
-Cela permet de définir le nom de la machine dans le gestionnaire Hyper-V, le nombre de cpu, la RAM à allouer au démarrage, la mémoire maximale pouvant être allouée dynamiquement, le temps maximum à attendre pour que la machine renvoie son IP au démarrage.</p>
-<div class="highlight"><pre><span></span><span class="nv">config</span>.<span class="nv">vm</span>.<span class="nv">provider</span> <span class="s2">&quot;</span><span class="s">hyperv</span><span class="s2">&quot;</span> <span class="k">do</span> <span class="o">|</span><span class="nv">hv</span><span class="o">|</span>
-  <span class="nv">hv</span>.<span class="nv">vmname</span> <span class="o">=</span> <span class="nv">ENV</span>[<span class="s1">&#39;</span><span class="s">VM_HYPERV_NAME</span><span class="s1">&#39;</span>]
-  <span class="nv">hv</span>.<span class="nv">cpus</span> <span class="o">=</span> <span class="nv">ENV</span>[<span class="s1">&#39;</span><span class="s">VM_CPU</span><span class="s1">&#39;</span>]
-  <span class="nv">hv</span>.<span class="nv">memory</span> <span class="o">=</span> <span class="nv">ENV</span>[<span class="s1">&#39;</span><span class="s">VM_MEMORY_STARTUP</span><span class="s1">&#39;</span>]
-  <span class="nv">hv</span>.<span class="nv">maxmemory</span> <span class="o">=</span> <span class="nv">ENV</span>[<span class="s1">&#39;</span><span class="s">VM_MEMORY_MAX</span><span class="s1">&#39;</span>]
-  <span class="nv">hv</span>.<span class="nv">ip_address_timeout</span> <span class="o">=</span> <span class="mi">240</span>
+<p><br><br>
+La configuration spécifique au provider hyperv.<br>
+Cela permet de définir :</p>
+<ul>
+<li>le nom de la machine dans le gestionnaire Hyper-V,</li>
+<li>le nombre de cpu, la RAM à allouer au démarrage,</li>
+<li>la mémoire maximale pouvant être allouée dynamiquement,</li>
+<li>le temps maximum à attendre pour que la machine renvoie son IP au démarrage.</li>
+</ul>
+<div class="highlight"><pre><span></span><span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">provider</span> <span class="s2">&quot;hyperv&quot;</span> <span class="k">do</span> <span class="o">|</span><span class="n">hv</span><span class="o">|</span>
+  <span class="n">hv</span><span class="o">.</span><span class="n">vmname</span> <span class="o">=</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;VM_HYPERV_NAME&#39;</span><span class="o">]</span>
+  <span class="n">hv</span><span class="o">.</span><span class="n">cpus</span> <span class="o">=</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;VM_CPU&#39;</span><span class="o">]</span>
+  <span class="n">hv</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;VM_MEMORY_STARTUP&#39;</span><span class="o">]</span>
+  <span class="n">hv</span><span class="o">.</span><span class="n">maxmemory</span> <span class="o">=</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;VM_MEMORY_MAX&#39;</span><span class="o">]</span>
+  <span class="n">hv</span><span class="o">.</span><span class="n">ip_address_timeout</span> <span class="o">=</span> <span class="mi">240</span>
 <span class="k">end</span>
 </pre></div>
 
 
-<p>Le nom d'hôte de la machine (fqdn) :</p>
-<div class="highlight"><pre><span></span><span class="n">config</span><span class="p">.</span><span class="n">vm</span><span class="p">.</span><span class="n">hostname</span> <span class="o">=</span> <span class="n">ENV</span><span class="p">[</span><span class="s1">&#39;VM_HOSTNAME&#39;</span><span class="p">]</span>
+<p><br><br>
+Le nom d'hôte de la machine (fqdn) :</p>
+<div class="highlight"><pre><span></span><span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">hostname</span> <span class="o">=</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;VM_HOSTNAME&#39;</span><span class="o">]</span>
 </pre></div>
 
 
-<p>Je fige la version de ma box à utiliser.<br>
+<p><br><br>
+Je fige la version de ma box à utiliser.<br>
 Si je dois mettre à jour jour ma box, je pourrai lancer la commande <code>vagrant box outdated</code>.</p>
-<div class="highlight"><pre><span></span><span class="n">config</span><span class="p">.</span><span class="n">vm</span><span class="p">.</span><span class="n">box_check_update</span> <span class="o">=</span> <span class="k">false</span>
+<div class="highlight"><pre><span></span><span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">box_check_update</span> <span class="o">=</span> <span class="kp">false</span>
 </pre></div>
 
 
-<p>Le plugin proxyconf permet de paramétrer le proxy pour divers services (git, docker, variables d'environnement, apt).<br>
-J'utilise ma machine virtuelle comme proxy sur le port 3128 car il y aura cntlm qui redirigera vers un proxy externe si il y en a un et sinon en direct.<br>
-De cette manière j'ai juste la conf de cntlm à changer et non pas les paramètres proxy de tous mes services.<br>
-J'utilise directement le proxy externe pour apt comme ça les paquets cifs (nécessaire pour monter mes répertoires smb sur la machine virtuelle) et cntlm pourront être installés avant que cntlm ne soit disponible.</p>
-<div class="highlight"><pre><span></span><span class="k">if</span> <span class="nv">Vagrant</span>.<span class="nv">has_plugin</span>?<span class="ss">(</span><span class="s2">&quot;</span><span class="s">vagrant-proxyconf</span><span class="s2">&quot;</span><span class="ss">)</span>
-  <span class="nv">config</span>.<span class="nv">proxy</span>.<span class="nv">http</span>     <span class="o">=</span> <span class="s2">&quot;</span><span class="s">http://</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="nv">ENV</span>[<span class="s1">&#39;</span><span class="s">VM_HOSTNAME</span><span class="s1">&#39;</span>] <span class="o">+</span> <span class="s2">&quot;</span><span class="s">:3128/</span><span class="s2">&quot;</span>
-  <span class="nv">config</span>.<span class="nv">proxy</span>.<span class="nv">https</span>    <span class="o">=</span> <span class="s2">&quot;</span><span class="s">http://</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="nv">ENV</span>[<span class="s1">&#39;</span><span class="s">VM_HOSTNAME</span><span class="s1">&#39;</span>] <span class="o">+</span> <span class="s2">&quot;</span><span class="s">:3128/</span><span class="s2">&quot;</span>
-  <span class="nv">config</span>.<span class="nv">apt_proxy</span>.<span class="nv">http</span> <span class="o">=</span> <span class="nv">ENV</span>[<span class="s2">&quot;</span><span class="s">EXTERNAL_PROXY_URL</span><span class="s2">&quot;</span>]
-  <span class="nv">config</span>.<span class="nv">apt_proxy</span>.<span class="nv">https</span> <span class="o">=</span> <span class="nv">ENV</span>[<span class="s2">&quot;</span><span class="s">EXTERNAL_PROXY_URL</span><span class="s2">&quot;</span>]
+<p><br><br>
+Le plugin proxyconf permet de paramétrer le proxy pour divers services (git, docker, variables d'environnement, apt).</p>
+<p>J'utilise ma machine virtuelle comme proxy sur le port 3128 car il y aura cntlm qui redirigera vers un proxy externe si il y en a un et sinon en direct.<br>
+De cette manière j'ai juste la conf de cntlm à changer et non pas les paramètres proxy de tous mes services.</p>
+<p>J'utilise directement le proxy externe pour apt comme ça les paquets cifs (nécessaire pour monter mes répertoires smb sur la machine virtuelle) et cntlm pourront être installés avant que cntlm ne soit disponible.</p>
+<div class="highlight"><pre><span></span><span class="k">if</span> <span class="no">Vagrant</span><span class="o">.</span><span class="n">has_plugin?</span><span class="p">(</span><span class="s2">&quot;vagrant-proxyconf&quot;</span><span class="p">)</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">http</span>     <span class="o">=</span> <span class="s2">&quot;http://&quot;</span> <span class="o">+</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;VM_HOSTNAME&#39;</span><span class="o">]</span> <span class="o">+</span> <span class="s2">&quot;:3128/&quot;</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">proxy</span><span class="o">.</span><span class="n">https</span>    <span class="o">=</span> <span class="s2">&quot;http://&quot;</span> <span class="o">+</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;VM_HOSTNAME&#39;</span><span class="o">]</span> <span class="o">+</span> <span class="s2">&quot;:3128/&quot;</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">apt_proxy</span><span class="o">.</span><span class="n">http</span> <span class="o">=</span> <span class="no">ENV</span><span class="o">[</span><span class="s2">&quot;EXTERNAL_PROXY_URL&quot;</span><span class="o">]</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">apt_proxy</span><span class="o">.</span><span class="n">https</span> <span class="o">=</span> <span class="no">ENV</span><span class="o">[</span><span class="s2">&quot;EXTERNAL_PROXY_URL&quot;</span><span class="o">]</span>
 <span class="k">end</span>
 </pre></div>
 
 
-<p>Le plugin hostmanager permet de mettre à jour automatiquement le fichier hosts de la machine hôte avec les différents noms auquel doit répondre ma machine virtuelle.<br>
-Je n'ai pas besoin de gérer la machine virtuelle car c'est ma machine hôte qui est serveur de nom pour la machine virtuelle.<br>
-Si je veux modifier, ajouter ous supprimer les alias, il me suffit de modifier la valeur <code>config.hostmanager.aliases</code> et de lancer la commande <code>vagrant hostmanager</code>.</p>
-<div class="highlight"><pre><span></span><span class="k">if</span> <span class="nv">Vagrant</span>.<span class="nv">has_plugin</span>?<span class="ss">(</span><span class="s2">&quot;</span><span class="s">vagrant-hostmanager</span><span class="s2">&quot;</span><span class="ss">)</span>
-  <span class="nv">config</span>.<span class="nv">hostmanager</span>.<span class="nv">enabled</span> <span class="o">=</span> <span class="nv">true</span>
-  <span class="nv">config</span>.<span class="nv">hostmanager</span>.<span class="nv">manage_host</span> <span class="o">=</span> <span class="nv">true</span>
-  <span class="nv">config</span>.<span class="nv">hostmanager</span>.<span class="nv">manage_guest</span> <span class="o">=</span> <span class="nv">false</span>
-  <span class="nv">config</span>.<span class="nv">hostmanager</span>.<span class="nv">ignore_private_ip</span> <span class="o">=</span> <span class="nv">false</span>
-  <span class="nv">config</span>.<span class="nv">hostmanager</span>.<span class="nv">aliases</span> <span class="o">=</span> [<span class="s1">&#39;</span><span class="s">registry.docker.</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="nv">ENV</span>[<span class="s1">&#39;</span><span class="s">DEV_DOMAIN</span><span class="s1">&#39;</span>], <span class="s1">&#39;</span><span class="s">traefik.</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="nv">ENV</span>[<span class="s1">&#39;</span><span class="s">DEV_DOMAIN</span><span class="s1">&#39;</span>], <span class="s1">&#39;</span><span class="s">mailhog.</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="nv">ENV</span>[<span class="s1">&#39;</span><span class="s">DEV_DOMAIN</span><span class="s1">&#39;</span>]]
+<p><br><br>
+Le plugin hostmanager permet de mettre à jour automatiquement le fichier hosts de la machine hôte avec les différents alias qui pourront être associés à ma machine virtuelle.</p>
+<p>Je n'ai pas besoin de gérer le fichier hosts de la machine virtuelle car c'est ma machine hôte qui est serveur de nom pour la machine virtuelle.</p>
+<p>Si je veux modifier, ajouter ou supprimer des alias, il me suffit de modifier la valeur <code>config.hostmanager.aliases</code> et de lancer la commande <code>vagrant hostmanager</code>.</p>
+<div class="highlight"><pre><span></span><span class="k">if</span> <span class="no">Vagrant</span><span class="o">.</span><span class="n">has_plugin?</span><span class="p">(</span><span class="s2">&quot;vagrant-hostmanager&quot;</span><span class="p">)</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">hostmanager</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="kp">true</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">hostmanager</span><span class="o">.</span><span class="n">manage_host</span> <span class="o">=</span> <span class="kp">true</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">hostmanager</span><span class="o">.</span><span class="n">manage_guest</span> <span class="o">=</span> <span class="kp">false</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">hostmanager</span><span class="o">.</span><span class="n">ignore_private_ip</span> <span class="o">=</span> <span class="kp">false</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">hostmanager</span><span class="o">.</span><span class="n">aliases</span> <span class="o">=</span> <span class="o">[</span><span class="s1">&#39;registry.docker.&#39;</span> <span class="o">+</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;DEV_DOMAIN&#39;</span><span class="o">]</span><span class="p">,</span> <span class="s1">&#39;traefik.&#39;</span> <span class="o">+</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;DEV_DOMAIN&#39;</span><span class="o">]</span><span class="p">,</span> <span class="s1">&#39;mailhog.&#39;</span> <span class="o">+</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;DEV_DOMAIN&#39;</span><span class="o">]]</span>
 <span class="k">end</span>
 </pre></div>
 
 
-<p>Je vais monter deux répertoires de ma machine hôte dans ma machine virtuelle (le répertoire courant pour pouvoir faire du provisioning via ansible_local notamment et un répertoire pour mes projets).<br>
-Il s'agit de répertoire de type smb (du coup à la création de la machine il faudra un peu de temps à la machine pour installer cifs) pour partager entre une machine windows 10 et une machine linux.<br>
-Je monte avec un uid et un gid à 1000 (forcés) dans la machine hôte car il s'agit de l'utilisateur vagrant dans ma debian.</p>
-<div class="highlight"><pre><span></span><span class="n">config</span><span class="p">.</span><span class="n">vm</span><span class="p">.</span><span class="n">synced_folder</span> <span class="ss">&quot;.&quot;</span><span class="p">,</span> <span class="ss">&quot;/vagrant&quot;</span><span class="p">,</span> <span class="k">type</span><span class="p">:</span> <span class="ss">&quot;smb&quot;</span><span class="p">,</span>
-  <span class="n">smb_password</span><span class="p">:</span> <span class="n">ENV</span><span class="p">[</span><span class="s1">&#39;SMB_PASSWORD&#39;</span><span class="p">],</span> <span class="n">smb_username</span><span class="p">:</span> <span class="n">ENV</span><span class="p">[</span><span class="s1">&#39;SMB_USERNAME&#39;</span><span class="p">],</span> <span class="n">mount_options</span><span class="p">:</span> <span class="p">[</span><span class="ss">&quot;iocharset=utf8&quot;</span><span class="p">,</span><span class="ss">&quot;uid=1000&quot;</span><span class="p">,</span><span class="ss">&quot;gid=1000&quot;</span><span class="p">,</span><span class="ss">&quot;forcegid&quot;</span><span class="p">,</span><span class="ss">&quot;forceuid&quot;</span><span class="p">,</span><span class="ss">&quot;dynperm&quot;</span><span class="p">]</span>
-<span class="n">config</span><span class="p">.</span><span class="n">vm</span><span class="p">.</span><span class="n">synced_folder</span> <span class="ss">&quot;../myprojects&quot;</span><span class="p">,</span> <span class="ss">&quot;/myprojects&quot;</span><span class="p">,</span> <span class="k">type</span><span class="p">:</span> <span class="ss">&quot;smb&quot;</span><span class="p">,</span>
-      <span class="n">smb_password</span><span class="p">:</span> <span class="n">ENV</span><span class="p">[</span><span class="s1">&#39;SMB_PASSWORD&#39;</span><span class="p">],</span> <span class="n">smb_username</span><span class="p">:</span> <span class="n">ENV</span><span class="p">[</span><span class="s1">&#39;SMB_USERNAME&#39;</span><span class="p">],</span> <span class="n">mount_options</span><span class="p">:</span> <span class="p">[</span><span class="ss">&quot;iocharset=utf8&quot;</span><span class="p">,</span><span class="ss">&quot;uid=1000&quot;</span><span class="p">,</span><span class="ss">&quot;gid=1000&quot;</span><span class="p">,</span><span class="ss">&quot;forcegid&quot;</span><span class="p">,</span><span class="ss">&quot;forceuid&quot;</span><span class="p">,</span><span class="ss">&quot;dynperm&quot;</span><span class="p">,</span><span class="ss">&quot;mfsymlinks&quot;</span><span class="p">]</span>
+<p><br><br>
+Je vais monter deux répertoires de ma machine hôte dans ma machine virtuelle (le répertoire courant pour notamment pouvoir faire du provisioning via ansible_local et un répertoire pour mes futurs projets).</p>
+<p>Il s'agit dans les deux cas de répertoire de type smb (du coup à la création de la machine il faudra un peu de temps à la machine pour installer cifs). Je choisis smb car il faut partager  entre une machine windows 10 et une machine linux.</p>
+<p>Je monte avec un uid et un gid à 1000 (forcés) dans la machine hôte car il s'agit de l'utilisateur vagrant dans ma debian (qui sera l'utilisateur que j'utiliserai par défaut).</p>
+<div class="highlight"><pre><span></span><span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">synced_folder</span> <span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;/vagrant&quot;</span><span class="p">,</span> <span class="ss">type</span><span class="p">:</span> <span class="s2">&quot;smb&quot;</span><span class="p">,</span>
+  <span class="ss">smb_password</span><span class="p">:</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;SMB_PASSWORD&#39;</span><span class="o">]</span><span class="p">,</span> <span class="ss">smb_username</span><span class="p">:</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;SMB_USERNAME&#39;</span><span class="o">]</span><span class="p">,</span> <span class="ss">mount_options</span><span class="p">:</span> <span class="o">[</span><span class="s2">&quot;iocharset=utf8&quot;</span><span class="p">,</span><span class="s2">&quot;uid=1000&quot;</span><span class="p">,</span><span class="s2">&quot;gid=1000&quot;</span><span class="p">,</span><span class="s2">&quot;forcegid&quot;</span><span class="p">,</span><span class="s2">&quot;forceuid&quot;</span><span class="p">,</span><span class="s2">&quot;dynperm&quot;</span><span class="o">]</span>
+<span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">synced_folder</span> <span class="s2">&quot;../myprojects&quot;</span><span class="p">,</span> <span class="s2">&quot;/myprojects&quot;</span><span class="p">,</span> <span class="ss">type</span><span class="p">:</span> <span class="s2">&quot;smb&quot;</span><span class="p">,</span>
+      <span class="ss">smb_password</span><span class="p">:</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;SMB_PASSWORD&#39;</span><span class="o">]</span><span class="p">,</span> <span class="ss">smb_username</span><span class="p">:</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;SMB_USERNAME&#39;</span><span class="o">]</span><span class="p">,</span> <span class="ss">mount_options</span><span class="p">:</span> <span class="o">[</span><span class="s2">&quot;iocharset=utf8&quot;</span><span class="p">,</span><span class="s2">&quot;uid=1000&quot;</span><span class="p">,</span><span class="s2">&quot;gid=1000&quot;</span><span class="p">,</span><span class="s2">&quot;forcegid&quot;</span><span class="p">,</span><span class="s2">&quot;forceuid&quot;</span><span class="p">,</span><span class="s2">&quot;dynperm&quot;</span><span class="p">,</span><span class="s2">&quot;mfsymlinks&quot;</span><span class="o">]</span>
 </pre></div>
 
 
-<p>La machine est provisionné via le shell, une seule fois au premier démarrage.<br>
-Cela me permet de mettre à jour le serveur de nom avec l'adresse 192.168.137.1 de ma machine hôte.<br>
+<p><br><br>
+La machine est provisionnée tout d'abord via le shell, une seule fois au premier démarrage.</p>
+<p>Cela me permet de mettre à jour le serveur de nom avec l'adresse 192.168.137.1 (qui est l'interface de ma machine hôte dans le réseau Vagrant).<br>
 Je mets également à jour le domaine de recherche local.</p>
-<div class="highlight"><pre><span></span><span class="nv">config</span>.<span class="nv">vm</span>.<span class="nv">provision</span> <span class="s2">&quot;</span><span class="s">shell_init</span><span class="s2">&quot;</span>, <span class="nv">type</span>:<span class="s2">&quot;</span><span class="s">shell</span><span class="s2">&quot;</span>, <span class="nv">run</span>: <span class="s2">&quot;</span><span class="s">once</span><span class="s2">&quot;</span> <span class="k">do</span> <span class="o">|</span><span class="nv">shell</span><span class="o">|</span>
-  <span class="nv">shell</span>.<span class="nv">path</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">./provisioning/shell/updateresolvconf.sh</span><span class="s2">&quot;</span>
-  <span class="nv">shell</span>.<span class="nv">args</span> <span class="o">=</span> [<span class="nv">ENV</span>[<span class="s1">&#39;</span><span class="s">DEV_DOMAIN</span><span class="s1">&#39;</span>]]
+<div class="highlight"><pre><span></span><span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">provision</span> <span class="s2">&quot;shell_init&quot;</span><span class="p">,</span> <span class="ss">type</span><span class="p">:</span><span class="s2">&quot;shell&quot;</span><span class="p">,</span> <span class="ss">run</span><span class="p">:</span> <span class="s2">&quot;once&quot;</span> <span class="k">do</span> <span class="o">|</span><span class="n">shell</span><span class="o">|</span>
+  <span class="n">shell</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;./provisioning/shell/updateresolvconf.sh&quot;</span>
+  <span class="n">shell</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="o">[</span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;DEV_DOMAIN&#39;</span><span class="o">]]</span>
 <span class="k">end</span>
 </pre></div>
 
 
-<p>La machine est ensuite provisionné via ansible_local, une seule fois au premier démarrage.<br>
-ansible est installé via pip (et je dois gérer l'éventuel proxy car cntlm n'est pas encore disponible).<br>
-Je choisis la version 2.8.0 qui ets la dernière version à ce jour.<br>
-Ce provisonnement lance le playbook init.yaml qui permet de configurer la locale, la timezone, gérer le fichier /etc/hosts puis installer divers packages (git, editeurs, curl) et enfin l'installation de cntlm et docker.</p>
-<div class="highlight"><pre><span></span><span class="nv">config</span>.<span class="nv">vm</span>.<span class="nv">provision</span> <span class="s2">&quot;</span><span class="s">ansible_local_init</span><span class="s2">&quot;</span>, <span class="nv">type</span>:<span class="s2">&quot;</span><span class="s">ansible_local</span><span class="s2">&quot;</span>, <span class="nv">run</span>: <span class="s2">&quot;</span><span class="s">once</span><span class="s2">&quot;</span> <span class="k">do</span> <span class="o">|</span><span class="nv">ansible</span><span class="o">|</span>
-  <span class="nv">ansible</span>.<span class="nv">config_file</span><span class="o">=</span> <span class="s2">&quot;</span><span class="s">/vagrant/provisioning/ansible/.ansible.cfg</span><span class="s2">&quot;</span>
-  <span class="nv">ansible</span>.<span class="nv">playbook</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">/vagrant/provisioning/ansible/init.yaml</span><span class="s2">&quot;</span>
-  <span class="nv">ansible</span>.<span class="nv">install_mode</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">pip</span><span class="s2">&quot;</span>
-  <span class="k">if</span> <span class="nv">ENV</span>[<span class="s1">&#39;</span><span class="s">EXTERNAL_PROXY_URL</span><span class="s1">&#39;</span>] <span class="o">!=</span> <span class="s2">&quot;</span><span class="s">DIRECT</span><span class="s2">&quot;</span>
-    <span class="nv">ansible</span>.<span class="nv">pip_args</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">--proxy </span><span class="s2">&quot;</span> <span class="o">+</span> <span class="nv">ENV</span>[<span class="s2">&quot;</span><span class="s">EXTERNAL_PROXY_URL</span><span class="s2">&quot;</span>]
+<p><br><br>
+La machine est ensuite provisionnée via ansible_local, toujours une seule fois au premier démarrage.</p>
+<p>Ansible est installé via pip (et je dois gérer l'éventuel proxy car cntlm n'est pas encore disponible).</p>
+<p>Je choisis la version 2.8.0 qui est la dernière version à ce jour.</p>
+<p>Ce provisonnement lance le playbook init.yaml qui permet de configurer la locale, la timezone, gérer le fichier /etc/hosts puis installer divers packages (git, editeurs, curl) et enfin l'installation de cntlm et docker.</p>
+<div class="highlight"><pre><span></span><span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">provision</span> <span class="s2">&quot;ansible_local_init&quot;</span><span class="p">,</span> <span class="ss">type</span><span class="p">:</span><span class="s2">&quot;ansible_local&quot;</span><span class="p">,</span> <span class="ss">run</span><span class="p">:</span> <span class="s2">&quot;once&quot;</span> <span class="k">do</span> <span class="o">|</span><span class="n">ansible</span><span class="o">|</span>
+  <span class="n">ansible</span><span class="o">.</span><span class="n">config_file</span><span class="o">=</span> <span class="s2">&quot;/vagrant/provisioning/ansible/.ansible.cfg&quot;</span>
+  <span class="n">ansible</span><span class="o">.</span><span class="n">playbook</span> <span class="o">=</span> <span class="s2">&quot;/vagrant/provisioning/ansible/init.yaml&quot;</span>
+  <span class="n">ansible</span><span class="o">.</span><span class="n">install_mode</span> <span class="o">=</span> <span class="s2">&quot;pip&quot;</span>
+  <span class="k">if</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;EXTERNAL_PROXY_URL&#39;</span><span class="o">]</span> <span class="o">!=</span> <span class="s2">&quot;DIRECT&quot;</span>
+    <span class="n">ansible</span><span class="o">.</span><span class="n">pip_args</span> <span class="o">=</span> <span class="s2">&quot;--proxy &quot;</span> <span class="o">+</span> <span class="no">ENV</span><span class="o">[</span><span class="s2">&quot;EXTERNAL_PROXY_URL&quot;</span><span class="o">]</span>
   <span class="k">end</span>
-  <span class="nv">ansible</span>.<span class="nv">version</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">2.8.0</span><span class="s2">&quot;</span>
-  <span class="nv">ansible</span>.<span class="nv">compatibility_mode</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">2.0</span><span class="s2">&quot;</span>
-  <span class="nv">ansible</span>.<span class="nv">extra_vars</span> <span class="o">=</span> {
-    <span class="nv">localdomain</span>: <span class="nv">ENV</span>[<span class="s1">&#39;</span><span class="s">DEV_DOMAIN</span><span class="s1">&#39;</span>],
-    <span class="nv">external_proxy_url</span>: <span class="nv">ENV</span>[<span class="s1">&#39;</span><span class="s">EXTERNAL_PROXY_URL</span><span class="s1">&#39;</span>],
-    <span class="nv">external_proxy_no_proxy_rules</span>: <span class="nv">ENV</span>[<span class="s1">&#39;</span><span class="s">EXTERNAL_PROXY_NO_PROXY_RULES</span><span class="s1">&#39;</span>]
-  }
-  <span class="nv">ansible</span>.<span class="nv">verbose</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+  <span class="n">ansible</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;2.8.0&quot;</span>
+  <span class="n">ansible</span><span class="o">.</span><span class="n">compatibility_mode</span> <span class="o">=</span> <span class="s2">&quot;2.0&quot;</span>
+  <span class="n">ansible</span><span class="o">.</span><span class="n">extra_vars</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="ss">localdomain</span><span class="p">:</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;DEV_DOMAIN&#39;</span><span class="o">]</span><span class="p">,</span>
+    <span class="ss">external_proxy_url</span><span class="p">:</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;EXTERNAL_PROXY_URL&#39;</span><span class="o">]</span><span class="p">,</span>
+    <span class="ss">external_proxy_no_proxy_rules</span><span class="p">:</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;EXTERNAL_PROXY_NO_PROXY_RULES&#39;</span><span class="o">]</span>
+  <span class="p">}</span>
+  <span class="n">ansible</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 <span class="k">end</span>
 </pre></div>
 
 
-<p>Ensuite, il s'agit d'un provisionnement qui ne s'exécute qu'à la demande (<code>run: "never"</code>) et qui permet de déployer le reverse_proxy traefik, la registry docker et le serveur smtp Mailhog sous forme de container docker.<br>
-Ce provisionnement est lancé après le premier up de la machine et un reload pour être sûr que docker et cntlm sont présents et paramétrés.<br>
-Les répertoires de données des containers sont des volumes docker de type "bind mount" qui sont dans un répertoire partagé entre la machine hôte et la machine virtuelle. Comme ça, ma registry docker est déjà alimenté si je détruis et recrée ma machine.</p>
-<div class="highlight"><pre><span></span><span class="nv">config</span>.<span class="nv">vm</span>.<span class="nv">provision</span> <span class="s2">&quot;</span><span class="s">ansible_local_services</span><span class="s2">&quot;</span>, <span class="nv">type</span>:<span class="s2">&quot;</span><span class="s">ansible_local</span><span class="s2">&quot;</span>, <span class="nv">run</span>: <span class="s2">&quot;</span><span class="s">never</span><span class="s2">&quot;</span> <span class="k">do</span> <span class="o">|</span><span class="nv">ansible</span><span class="o">|</span>
-  <span class="nv">ansible</span>.<span class="nv">config_file</span><span class="o">=</span> <span class="s2">&quot;</span><span class="s">/vagrant/provisioning/ansible/.ansible.cfg</span><span class="s2">&quot;</span>
-  <span class="nv">ansible</span>.<span class="nv">playbook</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">/vagrant/provisioning/ansible/services.yaml</span><span class="s2">&quot;</span>
-  <span class="nv">ansible</span>.<span class="nv">compatibility_mode</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">2.0</span><span class="s2">&quot;</span>
-  <span class="nv">ansible</span>.<span class="nv">extra_vars</span> <span class="o">=</span> {
-    <span class="nv">localdomain</span>: <span class="nv">ENV</span>[<span class="s1">&#39;</span><span class="s">DEV_DOMAIN</span><span class="s1">&#39;</span>]
-  }
-  <span class="nv">ansible</span>.<span class="nv">verbose</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<p><br><br>
+Ensuite, il s'agit d'un provisionnement qui ne s'exécute qu'à la demande (<code>run: "never"</code>) et qui permet de déployer le reverse_proxy traefik, la registry docker et le serveur smtp Mailhog sous forme de container docker.</p>
+<p>Ce provisionnement est lancé après le premier up de la machine et un reload pour être sûr que docker et cntlm sont présents et paramétrés.</p>
+<p>Les répertoires de données des containers sont des volumes docker de type "bind mount" qui sont dans un répertoire partagé entre la machine hôte et la machine virtuelle. Comme ça, ma registry docker est déjà alimentée si je dois détruire et créer à nouveau ma machine.</p>
+<p>Les containers sont lancés avec l'option <code>restart: always</code> pour pouvoir être lancés automatiquement au démarrage de la machine (comme des services).</p>
+<div class="highlight"><pre><span></span><span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">provision</span> <span class="s2">&quot;ansible_local_services&quot;</span><span class="p">,</span> <span class="ss">type</span><span class="p">:</span><span class="s2">&quot;ansible_local&quot;</span><span class="p">,</span> <span class="ss">run</span><span class="p">:</span> <span class="s2">&quot;never&quot;</span> <span class="k">do</span> <span class="o">|</span><span class="n">ansible</span><span class="o">|</span>
+  <span class="n">ansible</span><span class="o">.</span><span class="n">config_file</span><span class="o">=</span> <span class="s2">&quot;/vagrant/provisioning/ansible/.ansible.cfg&quot;</span>
+  <span class="n">ansible</span><span class="o">.</span><span class="n">playbook</span> <span class="o">=</span> <span class="s2">&quot;/vagrant/provisioning/ansible/services.yaml&quot;</span>
+  <span class="n">ansible</span><span class="o">.</span><span class="n">compatibility_mode</span> <span class="o">=</span> <span class="s2">&quot;2.0&quot;</span>
+  <span class="n">ansible</span><span class="o">.</span><span class="n">extra_vars</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="ss">localdomain</span><span class="p">:</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;DEV_DOMAIN&#39;</span><span class="o">]</span>
+  <span class="p">}</span>
+  <span class="n">ansible</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 <span class="k">end</span>
 </pre></div>
 
 
-<p>Enfin, le dernier provisionnement qui ne s'exécute qu'à la demande (<code>run: "never"</code>) et qui permet de modifier la configuration de CNTLM.<br>
-Dans la machine virtuelle cntlm tourne sur le port 3128 et a les règles suivantes:<br>
-- si un proxy externe est défini, cntlm redirige vers ce proxy sauf les ip locales, le nom de domaine local et  les règles no_proxy du proxy externe.<br>
-- si le proxy externe est à DIRECT, cntlm est positionné avec des règles no_proxy à "*" donc tout passe directement.</p>
-<div class="highlight"><pre><span></span><span class="nv">config</span>.<span class="nv">vm</span>.<span class="nv">provision</span> <span class="s2">&quot;</span><span class="s">ansible_local_updateproxy</span><span class="s2">&quot;</span>, <span class="nv">type</span>:<span class="s2">&quot;</span><span class="s">ansible_local</span><span class="s2">&quot;</span>, <span class="nv">run</span>: <span class="s2">&quot;</span><span class="s">never</span><span class="s2">&quot;</span> <span class="k">do</span> <span class="o">|</span><span class="nv">ansible</span><span class="o">|</span>
-  <span class="nv">ansible</span>.<span class="nv">config_file</span><span class="o">=</span> <span class="s2">&quot;</span><span class="s">/vagrant/provisioning/ansible/.ansible.cfg</span><span class="s2">&quot;</span>
-  <span class="nv">ansible</span>.<span class="nv">playbook</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">/vagrant/provisioning/ansible/updateproxy.yaml</span><span class="s2">&quot;</span>
-  <span class="nv">ansible</span>.<span class="nv">compatibility_mode</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="s">2.0</span><span class="s2">&quot;</span>
-  <span class="nv">ansible</span>.<span class="nv">extra_vars</span> <span class="o">=</span> {
-    <span class="nv">localdomain</span>: <span class="nv">ENV</span>[<span class="s1">&#39;</span><span class="s">DEV_DOMAIN</span><span class="s1">&#39;</span>],
-    <span class="nv">external_proxy_url</span>: <span class="nv">ENV</span>[<span class="s1">&#39;</span><span class="s">EXTERNAL_PROXY_URL</span><span class="s1">&#39;</span>],
-    <span class="nv">external_proxy_no_proxy_rules</span>: <span class="nv">ENV</span>[<span class="s1">&#39;</span><span class="s">EXTERNAL_PROXY_NO_PROXY_RULES</span><span class="s1">&#39;</span>]
-  }
-  <span class="nv">ansible</span>.<span class="nv">verbose</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<p><br><br>
+Enfin, le dernier provisionnement qui lui aussi ne s'exécute qu'à la demande (<code>run: "never"</code>) et qui permet de modifier la configuration de CNTLM.</p>
+<p>Dans la machine virtuelle cntlm tourne sur le port 3128 et a les règles suivantes :</p>
+<ul>
+<li>si un proxy externe est défini, cntlm redirige vers ce proxy sauf les ip locales (localhost, 127.0.0.*, 192.168.*, 10.*), le nom de domaine local (*.charloup.test) et les règles no_proxy du proxy externe.</li>
+<li>si le proxy externe est à DIRECT, cntlm est positionné avec des règles no_proxy à "*" donc tout passe directement.</li>
+</ul>
+<div class="highlight"><pre><span></span><span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">provision</span> <span class="s2">&quot;ansible_local_updateproxy&quot;</span><span class="p">,</span> <span class="ss">type</span><span class="p">:</span><span class="s2">&quot;ansible_local&quot;</span><span class="p">,</span> <span class="ss">run</span><span class="p">:</span> <span class="s2">&quot;never&quot;</span> <span class="k">do</span> <span class="o">|</span><span class="n">ansible</span><span class="o">|</span>
+  <span class="n">ansible</span><span class="o">.</span><span class="n">config_file</span><span class="o">=</span> <span class="s2">&quot;/vagrant/provisioning/ansible/.ansible.cfg&quot;</span>
+  <span class="n">ansible</span><span class="o">.</span><span class="n">playbook</span> <span class="o">=</span> <span class="s2">&quot;/vagrant/provisioning/ansible/updateproxy.yaml&quot;</span>
+  <span class="n">ansible</span><span class="o">.</span><span class="n">compatibility_mode</span> <span class="o">=</span> <span class="s2">&quot;2.0&quot;</span>
+  <span class="n">ansible</span><span class="o">.</span><span class="n">extra_vars</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="ss">localdomain</span><span class="p">:</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;DEV_DOMAIN&#39;</span><span class="o">]</span><span class="p">,</span>
+    <span class="ss">external_proxy_url</span><span class="p">:</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;EXTERNAL_PROXY_URL&#39;</span><span class="o">]</span><span class="p">,</span>
+    <span class="ss">external_proxy_no_proxy_rules</span><span class="p">:</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;EXTERNAL_PROXY_NO_PROXY_RULES&#39;</span><span class="o">]</span>
+  <span class="p">}</span>
+  <span class="n">ansible</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 <span class="k">end</span>
 </pre></div>
 

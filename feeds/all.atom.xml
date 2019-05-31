@@ -13,13 +13,14 @@
 &lt;/ul&gt;
 &lt;p&gt;Donc c'est parti.&lt;/p&gt;
 &lt;hr&gt;
-&lt;h3&gt;Détail du Dockerfile&lt;/h3&gt;
-&lt;p&gt;On part donc de l'image de base debian:stretch pour construire l'image&lt;/p&gt;
+&lt;h3&gt;&lt;strong&gt;1. Détail du Dockerfile&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;L'image sera construite en partant de l'image Docker officielle debian stretch.&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="s"&gt; debian:stretch&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;On ajoute des étiquettes à notre image :&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Ajout de quelques étiquettes à l'image.&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;LABEL&lt;/span&gt; &lt;span class="nv"&gt;version&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;1.0&amp;quot;&lt;/span&gt;
 &lt;span class="k"&gt;LABEL&lt;/span&gt; &lt;span class="nv"&gt;maintainer&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;christophe.barriere@developpement-durable.gouv.fr&amp;quot;&lt;/span&gt;
 &lt;span class="k"&gt;LABEL&lt;/span&gt; &lt;span class="nv"&gt;description&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Image Docker pour un OS Debian avec: \&lt;/span&gt;
@@ -29,18 +30,28 @@
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;L'installation est automatique donc on ne veut pas que debconf pose des quetions lors de l'installation ou la configuration de paquets :&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+L'installation est automatique donc passage en mode "non interactif" pour que debconf ne pose pas de questions lors de l'installation ou lors de la configuration des paquets.&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;ENV&lt;/span&gt; DEBIAN_FRONTEND noninteractive
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;On ne veut pas de bootloader :&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Pas de bootloader.&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;ENV&lt;/span&gt; INITRD No
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;On met à jour la liste des paquets, on installe nginx, openssh-server et les locales sans demander de confirmation (option -y), sans installer les paquets recommandés en plus (option --no-install-recommends) pour pouvoir limiter la taille de l'image et on nettoie le cache apt (également pour limiter la taille de l'image)&lt;br&gt;
-NB: Tout en une seule commande Dockerfile pour pouvoir optimiser les couches de notre image.&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+La commande suivante permet :&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;de mettre à jour la liste des paquets,&lt;/li&gt;
+&lt;li&gt;d'installer les paquets &lt;code&gt;nginx&lt;/code&gt;, &lt;code&gt;openssh-server&lt;/code&gt; et les &lt;code&gt;locales&lt;/code&gt;,&lt;/li&gt;
+&lt;li&gt;d'installer sans demander de confirmation (option &lt;code&gt;-y&lt;/code&gt;),&lt;/li&gt;
+&lt;li&gt;de ne pas installer les paquets recommandés (option &lt;code&gt;--no-install-recommends&lt;/code&gt;) pour pouvoir limiter la taille de l'image,&lt;/li&gt;
+&lt;li&gt;de nettoyer le cache apt (également pour limiter la taille de l'image)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;NB : Tout en une seule commande Dockerfile pour pouvoir optimiser les couches de l'image.&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;RUN&lt;/span&gt; apt-get update &lt;span class="se"&gt;\&lt;/span&gt;
  &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; apt-get install -y --no-install-recommends nginx openssh-server locales &lt;span class="se"&gt;\&lt;/span&gt;
  &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; apt-get clean &lt;span class="se"&gt;\&lt;/span&gt;
@@ -48,96 +59,109 @@ NB: Tout en une seule commande Dockerfile pour pouvoir optimiser les couches de 
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Gestion de la locale (fr_FR.UTF-8) et de la timezone (Europe/Paris) :&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Gestion de la locale &lt;code&gt;fr_FR.UTF-8&lt;/code&gt; et de la timezone &lt;code&gt;Europe/Paris&lt;/code&gt;.&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;RUN&lt;/span&gt; ln -fs /usr/share/zoneinfo/Europe/Paris /etc/localtime &lt;span class="se"&gt;\&lt;/span&gt;
   &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; dpkg-reconfigure -f noninteractive tzdata &lt;span class="se"&gt;\&lt;/span&gt;
   &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nb"&gt;echo&lt;/span&gt; fr_FR.UTF-8 UTF-8 &amp;gt; /etc/locale.gen &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; locale-gen --purge en_US.UTF-8
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Ajout de la configuration nginx dans l'image.&lt;br&gt;
-NB: deux choses importantes dans cette configuration :&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Ajout de la configuration nginx dans l'image.&lt;/p&gt;
+&lt;p&gt;NB : deux choses importantes dans cette configuration :&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;les fichiers du site seront dans le répertoire &lt;code&gt;/site_files&lt;/code&gt; du container&lt;/li&gt;
-&lt;li&gt;nginx sera démarré en mode daemon off pour qu'il reste au premier plan afin que docker puisse suivre correctement le processus (sinon le conteneur s'arrêtera immédiatement après le démarrage)&lt;/li&gt;
+&lt;li&gt;nginx sera démarré en mode &lt;code&gt;daemon off&lt;/code&gt; pour qu'il reste au premier plan afin que docker puisse suivre correctement le processus (sinon le conteneur s'arrêtera immédiatement après le démarrage)&lt;/li&gt;
 &lt;/ul&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;ADD&lt;/span&gt; nginx.conf /etc/nginx/nginx.conf
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;On veut un volume docker pour la persistence des données du site (le répertoire qui contient les fichiers servis par Nginx).&lt;br&gt;
-NB : le mieux sera de faire un montage de type bind sur ce volume lorqu'on lancera le container car de cette façon on pourra modifier les fichiers du site web directement dans l'hôte et non pas dans le container).&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Le container aura un volume Docker pour la persistence des données du site (le répertoire &lt;code&gt;/site_files&lt;/code&gt; qui contient les fichiers servis par Nginx).&lt;/p&gt;
+&lt;p&gt;NB : au lancement du container avec un montage de type bind pour ce volume, il sera facile de modifier les fichiers du site web directement dans l'hôte et non pas dans le container.&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;VOLUME&lt;/span&gt;&lt;span class="s"&gt; /site_files&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Il doit y avoir un répertoire /var/run/sshd pour le pidfile du serveur ssh.&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Il doit y avoir un répertoire &lt;code&gt;/var/run/sshd&lt;/code&gt; pour le pidfile du serveur ssh.&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;RUN&lt;/span&gt; mkdir /var/run/sshd
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;On ajoute notre clé publique pour que l'utilisateur root puisse se connecter avec sa clé privée en ssh.&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Ajout de la clé publique pour que l'utilisateur root puisse se connecter avec sa clé privée en ssh.&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;ADD&lt;/span&gt; id_rsa.pub /root/.ssh/root-connect_id_rsa.pub
 &lt;span class="k"&gt;RUN&lt;/span&gt; cat /root/.ssh/root-connect_id_rsa.pub &amp;gt; /root/.ssh/authorized_keys
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;On modifie la configuration du serveur SSH pour autoriser root à se logguer en SSH&lt;br&gt;
-NB : J'ai fait simple. Idéalement il faudrait créer un nouvel utilisateur avec les droits sudo.&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Modification de la configuration du serveur ssh pour autoriser la connexion en ssh au compte root.&lt;/p&gt;
+&lt;p&gt;NB : J'ai fait simple. Idéalement il faudrait créer un nouvel utilisateur avec les droits sudo et laisser l'interdiction de connexion ssh pour le compte root.&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;RUN&lt;/span&gt; sed -i &lt;span class="s1"&gt;&amp;#39;s/#PermitRootLogin prohibit-password/PermitRootLogin yes/&amp;#39;&lt;/span&gt; /etc/ssh/sshd_config
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;On expose le port 22 (port pour le SSH) et le port 80 (pour nginx) dans le container.&lt;br&gt;
-NB : Il faudra mapper correctement ces ports lorsqu'on lance le container. En effet le port 22 par exemple est déjà utilisé dans la machine hôte.&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Le port 22 (port pour le SSH) et le port 80 (pour nginx) seront exposés par le container.&lt;/p&gt;
+&lt;p&gt;NB : Il conviendra ensuite de mapper correctement ces ports lorsqu'on lance le container. En effet le port 22 est déjà utilisé par le serveur ssh de la machine de développement. C'est la même chose pour le port 80 qui est déjà exposé dans la machine de développement par le container Traefik.&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;EXPOSE&lt;/span&gt;&lt;span class="s"&gt; 22 80&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Le container sera lancé par l'utilisateur root.&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Le container sera lancé par l'utilisateur root.&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;USER&lt;/span&gt;&lt;span class="s"&gt; root&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;On redirige les logs de nginx vers les sorties standards (de cette façon on pourra voir les logs avec la commande &lt;code&gt;docker logs &amp;lt;nom_du_container&amp;gt;&lt;/code&gt;).&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Les logs de nginx sont redirigés vers les sorties standards (de cette façon, les logs d'un container pourront être accesibles via la commande &lt;code&gt;docker logs &amp;lt;nom_du_container&amp;gt;&lt;/code&gt;).&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;RUN&lt;/span&gt; ln -sf /dev/stdout /var/log/nginx/access.log &lt;span class="se"&gt;\&lt;/span&gt;
     &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; ln -sf /dev/stderr /var/log/nginx/error.log
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;On ajoute la commande de lancement à la racine du container.&lt;br&gt;
-NB : cette commande lancera dans un même processus (que docker peut suivre) à la fois le serveur ssh et le serveur nginx.&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Ajout du fichier &lt;code&gt;container_command.sh&lt;/code&gt; à la racine de l'image. Ce fichier servira comme commande de lancement du container.&lt;/p&gt;
+&lt;p&gt;NB : cette commande permettra de lancer dans un même processus (que docker peut suivre) à la fois le serveur ssh et le serveur nginx.&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;ADD&lt;/span&gt; container_command.sh /
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;On definit la commande de lancement du container.&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Le fichier &lt;code&gt;/container_command.sh&lt;/code&gt;, précédemment copié est défini comme commande de lancement du container.&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CMD&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;sh&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;/container_command.sh&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;hr&gt;
-&lt;h3&gt;Construction de l'image&lt;/h3&gt;
-&lt;p&gt;Dans le répertoire de notre projet, il faut lancer la commande suivante :&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;/p&gt;
+&lt;h3&gt;&lt;strong&gt;2. Construction de l'image&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;Dans le répertoire du projet, il faut lancer la commande suivante :&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;docker build --rm -t registry.docker.charloup.test:5000/nginx_with_ssh:1 .
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Explications :&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Explications :&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;
 &lt;p&gt;option &lt;code&gt;--rm&lt;/code&gt; : permet de supprimer les images intermédiaires après un build réussi&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;option &lt;code&gt;-t&lt;/code&gt; pour donner un nom à mon image (j'ai mis ma registry comme ça je pourrai la pousser par la suite avec &lt;code&gt;docker push registry.docker.charloup.test:5000/nginx_with_ssh:1&lt;/code&gt;)&lt;/p&gt;
+&lt;p&gt;option &lt;code&gt;-t&lt;/code&gt; : pour donner un nom à mon image (ici le nom comporte ma registry comme ça je pourrai la pousser par la suite avec &lt;code&gt;docker push registry.docker.charloup.test:5000/nginx_with_ssh:1&lt;/code&gt;)&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;on envoie le répertoire courant comme contexte pour construire l'image&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;.&lt;/code&gt; : c'est le répertoire courant qui est envoyé comme contexte pour construire l'image&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;hr&gt;
-&lt;h3&gt;Lancement du container&lt;/h3&gt;
-&lt;p&gt;Dans le répertoire de notre projet, il faut lancer la commande suivante :&lt;/p&gt;
+&lt;h3&gt;&lt;strong&gt;3. Lancement du container&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;Dans le répertoire du projet, il faut lancer la commande suivante :&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;docker run -d &lt;span class="se"&gt;\&lt;/span&gt;
   -p &lt;span class="m"&gt;2222&lt;/span&gt;:22 -p &lt;span class="m"&gt;8080&lt;/span&gt;:80 &lt;span class="se"&gt;\&lt;/span&gt;
   --mount &lt;span class="nv"&gt;type&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;bind,source&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;&lt;span class="nb"&gt;pwd&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;/site_files,target&lt;span class="o"&gt;=&lt;/span&gt;/site_files &lt;span class="se"&gt;\&lt;/span&gt;
@@ -146,55 +170,68 @@ NB : cette commande lancera dans un même processus (que docker peut suivre) à 
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Explications :&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Explications :&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;
-&lt;p&gt;option &lt;code&gt;-d&lt;/code&gt; : lancement en mode détaché&lt;/p&gt;
+&lt;p&gt;option &lt;code&gt;-d&lt;/code&gt; : lancement en mode détaché.&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;option &lt;code&gt;-p 2222:22&lt;/code&gt; : on mappe le port 22 du container sur le port 2222 de notre machine hôte. De cette manière on pourra se connecter en ssh dans le container en utilisant localhost sur le port 2222&lt;/p&gt;
+&lt;p&gt;option &lt;code&gt;-p 2222:22&lt;/code&gt; : le port 22 exposé par le container est mappé sur le port 2222 de la machine de développement.&lt;br&gt;
+  De cette manière la connexion en ssh au container se fera en utilisant localhost sur le port 2222.&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;option &lt;code&gt;-p 8080:80&lt;/code&gt; : on mappe le port 80 du container sur le port 8080 de la machine hôte. Notre serveur web nginx dans le container sera donc accessible via http://localhost:8080 dans la machine hôte&lt;/p&gt;
+&lt;p&gt;option &lt;code&gt;-p 8080:80&lt;/code&gt; : le port 80 exposé par le container est mappé sur le port 8080 de la machine de développement.&lt;br&gt;
+  Le serveur web nginx du container sera donc accessible via &lt;a href="http://localhost:8080"&gt;http://localhost:8080&lt;/a&gt; dans la machine de développement.&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;option &lt;code&gt;--mount type=bind,source="$(pwd)"/site_files,target=/site_files&lt;/code&gt; : on monte le répertoire site_files de notre machine hôte dans le répertoire &lt;code&gt;/site_files&lt;/code&gt; du container (celui qui est servi par nginx)&lt;/p&gt;
+&lt;p&gt;option &lt;code&gt;--mount type=bind,source="$(pwd)"/site_files,target=/site_files&lt;/code&gt; : Le répertoire relatif site_files de la machine de développement est monté dans le répertoire &lt;code&gt;/site_files&lt;/code&gt; du container (celui qui est servi par nginx)&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;option &lt;code&gt;--name nginx_ssh&lt;/code&gt; : on donne un nom au container. Par exemple ensuite pour voir les processus qui tournent dans le container, on fait &lt;code&gt;docker top nginx_ssh&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;option &lt;code&gt;--name nginx_ssh&lt;/code&gt; : Le container aura le nom &lt;code&gt;nginx_ssh&lt;/code&gt;.&lt;br&gt;
+  Par exemple ensuite pour voir les processus qui tournent dans le container, il suffit d'utiliser la commande &lt;code&gt;docker top nginx_ssh&lt;/code&gt;.&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;on lance le container à partir de l'image &lt;code&gt;registry.docker.charloup.test:5000/nginx_with_ssh:1&lt;/code&gt; précédemment construite&lt;/p&gt;
+&lt;p&gt;et bien sûr le container est démarré à partir de l'image &lt;code&gt;registry.docker.charloup.test:5000/nginx_with_ssh:1&lt;/code&gt; qui vient d'être précédemment construite.&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;hr&gt;
-&lt;h3&gt;Vérification&lt;/h3&gt;
+&lt;p&gt;&lt;br&gt;&lt;/p&gt;
+&lt;h3&gt;&lt;strong&gt;4. Vérification&lt;/strong&gt;&lt;/h3&gt;
 &lt;ul&gt;
 &lt;li&gt;
-&lt;p&gt;Site web : &lt;code&gt;curl http://localhost:8080&lt;/code&gt; nous retourne &lt;code&gt;Ceci est l'index de mon site servi Nginx dans un container Docker&lt;/code&gt; qui est le contenu de mon fichier site_files/index.html dans la machine hôte&lt;/p&gt;
+&lt;p&gt;Site web :&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;curl http://localhost:8080&lt;/code&gt; retourne &lt;code&gt;Ceci est l'index de mon site servi Nginx dans un container Docker&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Il s'agit bien du contenu du fichier site_files/index.html de la machine de développement.&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;Modification du site : &lt;code&gt;echo 'Mes modifications' &amp;gt; ./site_files/index.html &amp;amp;&amp;amp; curl http://localhost:8080&lt;/code&gt; m'affiche bien &lt;code&gt;Mes modifications&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Modification du site :&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;echo 'Mes modifications' &amp;gt; ./site_files/index.html &amp;amp;&amp;amp; curl http://localhost:8080&lt;/code&gt; affiche bien &lt;code&gt;Mes modifications&lt;/code&gt;.&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;Connexion ssh : &lt;code&gt;ssh -i chemin_vers_ma_cle_privee root@localhost -p 2222&lt;/code&gt; =&amp;gt; OK on est bien connecté en ssh dans le container&lt;/p&gt;
+&lt;p&gt;Connexion ssh :&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;ssh -i chemin_vers_ma_cle_privee root@localhost -p 2222&lt;/code&gt;&lt;br&gt;
+Ok pour la connexion ssh en root dans le container.&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;hr&gt;
-&lt;h3&gt;Remarques&lt;/h3&gt;
+&lt;p&gt;&lt;br&gt;&lt;/p&gt;
+&lt;h3&gt;&lt;strong&gt; 5. Remarques&lt;/strong&gt;&lt;/h3&gt;
 &lt;ul&gt;
 &lt;li&gt;
-&lt;p&gt;Un container avec ssh n'est pas forcément nécessaire. Si il y a bash dans le container, on peut faire &lt;code&gt;docker exec -it nom_du_container bash&lt;/code&gt; pour se connecter dans un container qui est démarré.&lt;/p&gt;
+&lt;p&gt;Un container avec ssh n'est pas forcément nécessaire.&lt;/p&gt;
+&lt;p&gt;Si il y a bash dans le container, on peut faire &lt;code&gt;docker exec -it nom_du_container bash&lt;/code&gt; pour se connecter dans un container qui est démarré.&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;Je peux lancer mon container pour être servi par traefik afin de ne pas avoir à mapper le port 80 du container. Voilà la commande à utiliser:&lt;/p&gt;
+&lt;p&gt;Il est possible de lancer le container pour être servi par Ttraefik afin de ne pas avoir à exposer directement le port 80 du container sur le port 8080 de la machine de développement. Il faut pour que cela fonctionne mettre le container dans le même réseau que celui de Traefik (&lt;code&gt;traefik-net&lt;/code&gt;) et activé quelques labels pour les règles de reverse-proxy.&lt;/p&gt;
+&lt;p&gt;Voilà la commande à utiliser:&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;docker run -d &lt;span class="se"&gt;\&lt;/span&gt;
   -p &lt;span class="m"&gt;2222&lt;/span&gt;:22 &lt;span class="se"&gt;\&lt;/span&gt;
   --mount &lt;span class="nv"&gt;type&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;bind,source&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;&lt;span class="nb"&gt;pwd&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;/site_files,target&lt;span class="o"&gt;=&lt;/span&gt;/site_files &lt;span class="se"&gt;\&lt;/span&gt;
   --name nginx_ssh &lt;span class="se"&gt;\&lt;/span&gt;
-  --network&lt;span class="o"&gt;=&lt;/span&gt;traefik-net &lt;span class="se"&gt;\&lt;/span&gt;
+  --network traefik-net &lt;span class="se"&gt;\&lt;/span&gt;
   --label traefik.enable&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;true&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
   --label traefik.frontend.entryPoints&lt;span class="o"&gt;=&lt;/span&gt;http &lt;span class="se"&gt;\&lt;/span&gt;
   --label traefik.frontend.rule&lt;span class="o"&gt;=&lt;/span&gt;Host:nginx.charloup.test &lt;span class="se"&gt;\&lt;/span&gt;
@@ -204,13 +241,14 @@ NB : cette commande lancera dans un même processus (que docker peut suivre) à 
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;et on vérifie que cela fonctionne avec &lt;code&gt;curl -H "Host:nginx.charloup.test" localhost&lt;/code&gt;&lt;/p&gt;
-&lt;hr&gt;</content><category term="docker"></category><category term="ssh"></category><category term="nginx"></category><category term="traefik"></category></entry><entry><title>Créer un environnement de travail local avec Vagrant</title><link href="https://chrisbarriere.github.io/pelican/creer-un-environnement-de-travail-local-avec-vagrant.html" rel="alternate"></link><published>2019-05-21T18:37:00+02:00</published><updated>2019-05-21T18:37:00+02:00</updated><author><name>Charloup</name></author><id>tag:chrisbarriere.github.io,2019-05-21:/pelican/creer-un-environnement-de-travail-local-avec-vagrant.html</id><summary type="html">&lt;p&gt;Le premier projet technique de ma formation consiste à mettre en place un environnement de travail local sous forme de machine virtuelle dans lequel on ajoutera des outils tels que Ansible ou Docker.&lt;br&gt;
-Ca c'est la demande minimale mais on va voir par la suite que je vais installer d'autres …&lt;/p&gt;</summary><content type="html">&lt;p&gt;Le premier projet technique de ma formation consiste à mettre en place un environnement de travail local sous forme de machine virtuelle dans lequel on ajoutera des outils tels que Ansible ou Docker.&lt;br&gt;
-Ca c'est la demande minimale mais on va voir par la suite que je vais installer d'autres outils afin de faciliter l'usage de ma machine de développement.  &lt;/p&gt;
+&lt;p&gt;Et pour vérifier que cela fonctionne : &lt;code&gt;curl -H "Host:nginx.charloup.test" localhost&lt;/code&gt;&lt;/p&gt;
+&lt;hr&gt;</content><category term="docker"></category><category term="ssh"></category><category term="nginx"></category><category term="traefik"></category></entry><entry><title>Créer un environnement de travail local avec Vagrant</title><link href="https://chrisbarriere.github.io/pelican/creer-un-environnement-de-travail-local-avec-vagrant.html" rel="alternate"></link><published>2019-05-21T18:37:00+02:00</published><updated>2019-05-21T18:37:00+02:00</updated><author><name>Charloup</name></author><id>tag:chrisbarriere.github.io,2019-05-21:/pelican/creer-un-environnement-de-travail-local-avec-vagrant.html</id><summary type="html">&lt;p&gt;Le premier projet technique de ma formation consiste à mettre en place un environnement de travail local sous forme de machine virtuelle dans lequel on ajoutera des outils tels que Ansible ou Docker.&lt;/p&gt;
+&lt;p&gt;Ça c'est la demande minimale mais on va voir par la suite que je vais installer d'autres …&lt;/p&gt;</summary><content type="html">&lt;p&gt;Le premier projet technique de ma formation consiste à mettre en place un environnement de travail local sous forme de machine virtuelle dans lequel on ajoutera des outils tels que Ansible ou Docker.&lt;/p&gt;
+&lt;p&gt;Ça c'est la demande minimale mais on va voir par la suite que je vais installer d'autres outils afin de faciliter l'usage de ma machine de développement.  &lt;/p&gt;
 &lt;hr&gt;
-&lt;h3&gt;Introduction&lt;/h3&gt;
-&lt;p&gt;&lt;strong&gt;Contraintes:&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;/p&gt;
+&lt;h3&gt;&lt;strong&gt;1. Introduction&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt; 1.1 Contraintes:&lt;/strong&gt;&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;
 &lt;p&gt;Je dispose d'une machine Windows 10 avec Hyper-v activé donc il n'y a plus qu'à oublier les outils tels que Virtualbox ou VMWare car il est impossible de les faire cohabiter avec Hyper-V.&lt;/p&gt;
@@ -222,7 +260,8 @@ Ca c'est la demande minimale mais on va voir par la suite que je vais installer 
 &lt;p&gt;Je veux limiter le nombre de logiciels installés sur ma machine&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;strong&gt;Fonctionnalités souhaitées:&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt; 1.2 Fonctionnalités souhaitées:&lt;/strong&gt;&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;
 &lt;p&gt;Je souhaite pouvoir disposer d'un environnement de développement évolutif et qui peut être configuré, détruit et redéployé très simplement.&lt;/p&gt;
@@ -240,7 +279,8 @@ Ca c'est la demande minimale mais on va voir par la suite que je vais installer 
 &lt;p&gt;Je veux pouvoir tester avec un vrai serveur stmp et pouvoir consulter les mails émis par mes applications.&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;strong&gt;Solution retenue&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt; 1.3 Solution retenue&lt;/strong&gt;&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;
 &lt;p&gt;Pour limiter le nombre de logiciels à installer, et permettre la possibilité de configurer facilement mon environnement, je vais donc déployer mon environnement de développement dans une machine virtuelle Hyper-V à l'aide de Vagrant.&lt;/p&gt;
@@ -267,7 +307,10 @@ Ca c'est la demande minimale mais on va voir par la suite que je vais installer 
 &lt;p&gt;Je mets en place Traefik (❤️❤️) comme reverse proxy : cela me permet d'avoir accès à mes services de type web hébergés dans des containers docker via leur nom DNS&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;Je mettrai en place un proxy CTNLM sur le port 3128 de ma machine virtuelle. Tous mes services (Git, Docker, Variables d'environnement) seront configurés pour utiliser le proxy CNTLM. De cette façon j'aurai juste à changer la configuration de CNTLM si je ne suis pas derrière un proxy. Pour configurer le proxy dans les services, j'utiliserai le plugin ProxyConf de Vagrant.&lt;/p&gt;
+&lt;p&gt;Je mettrai en place un proxy CNTLM sur le port 3128 de ma machine virtuelle. Tous mes services (Git, Docker, Variables d'environnement) seront configurés pour utiliser le proxy CNTLM. De cette façon j'aurai juste à changer la configuration de CNTLM si je ne suis pas derrière un proxy.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Pour configurer le proxy dans les services, j'utiliserai le plugin ProxyConf de Vagrant.&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;Des montages réseau de type smb permettront de partager des fichiers entre la machine hôte et la machine virtuelle.&lt;/p&gt;
@@ -279,75 +322,99 @@ Ca c'est la demande minimale mais on va voir par la suite que je vais installer 
 &lt;hr&gt;
 &lt;p&gt;NB : la plateforme de développement étant sur Windows 10, les commandes seront à lancer avec un Powershell avec des droits d'administrateur.&lt;/p&gt;
 &lt;hr&gt;
-&lt;h3&gt;Prérequis&lt;/h3&gt;
+&lt;p&gt;&lt;br&gt;&lt;/p&gt;
+&lt;h3&gt;&lt;strong&gt;2. Prérequis&lt;/strong&gt;&lt;/h3&gt;
 &lt;ul&gt;
 &lt;li&gt;
 &lt;p&gt;Un PC avec Windows 10, au moins 4 Go de mémoire et sur lequel on bénéficie des droits d'administrateur.&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;On doit s'assurer que Hyper-V est activé :&lt;br&gt;
-&lt;code&gt;Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;On doit s'assurer que Hyper-V est activé :&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;(Remarque : un redémarrage sera peut-être nécessaire)&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;Pour faire fonctionner des machines virtuelles récentes dans Hyper-V, il faut s'assurer d'avoir une version de configuration des machines virtuelles au moins égale à 8.3.&lt;br&gt;
-    Pour connaître la version supportée :&lt;br&gt;
-&lt;code&gt;Get-VMHostSupportedVersion -Default&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Pour faire fonctionner des machines virtuelles récentes dans Hyper-V, il faut s'assurer d'avoir une version de configuration des machines virtuelles au moins égale à 8.3.&lt;/p&gt;
+&lt;p&gt;Pour connaître la version supportée : &lt;code&gt;Get-VMHostSupportedVersion -Default&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;Si c'est trop bas, c'est que la version de Windows n'est pas à jour. Il faut au moins installer la mise-à-jour 18.09 de Windows 10 (prévoir entre 1h et 2h pour cette mise-à-jour....)&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;Avoir installé Vagrant à l'aide du paquet MSI récupéré sur le site officiel.&lt;br&gt;
-    Pour la dernière version (actuellement 2.2.4) en 64 bits c'est ici :&lt;br&gt;
-&lt;a href="https://releases.hashicorp.com/vagrant/2.2.4/vagrant_2.2.4_x86_64.msi" title="lien pour télécharger vagrant"&gt;https://releases.hashicorp.com/vagrant/2.2.4/vagrant_2.2.4_x86_64.msi&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Avoir installé Vagrant à l'aide du paquet MSI récupéré sur le site officiel.&lt;/p&gt;
+&lt;p&gt;Pour la dernière version (actuellement 2.2.4) en 64 bits c'est ici : &lt;a href="https://releases.hashicorp.com/vagrant/2.2.4/vagrant_2.2.4_x86_64.msi" title="lien pour télécharger vagrant"&gt;https://releases.hashicorp.com/vagrant/2.2.4/vagrant_2.2.4_x86_64.msi&lt;/a&gt;&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;Avoir récupérer les sources de ce projet sur gitlab :&lt;br&gt;
-&lt;code&gt;git clone https://gitlab.com/charloup/my-vagrant-environment.git&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Avoir récupérer les sources de ce projet sur gitlab :&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;git clone https://gitlab.com/charloup/my-vagrant-environment.git&lt;/code&gt;&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;hr&gt;
-&lt;h3&gt;Création et utilisation de la machine virtuelle&lt;/h3&gt;
-&lt;p&gt;&lt;strong&gt; Créer un fichier d'environnement &lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;/p&gt;
+&lt;h3&gt;&lt;strong&gt;3. Création et utilisation de la machine virtuelle&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt; 3.1 Créer un fichier d'environnement &lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;Mon projet doit comporter un fichier d'environnement &lt;code&gt;powershell\.env.ps1&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;Ce fichier doit être créé dans le même format que le fichier &lt;code&gt;.\powershell\.env.ps1-example&lt;/code&gt; avec les valeurs correspondant à notre environnement.&lt;/p&gt;
-&lt;p&gt;On peut donc créer le fichier par recopie du fichier exemple et le modifier:&lt;/p&gt;
+&lt;p&gt;On peut donc créer le fichier par recopie du fichier exemple et le modifier :&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nb"&gt;Copy-Item&lt;/span&gt; &lt;span class="p"&gt;.\&lt;/span&gt;&lt;span class="n"&gt;powershell&lt;/span&gt;&lt;span class="p"&gt;\.&lt;/span&gt;&lt;span class="n"&gt;env&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ps1-example&lt;/span&gt; &lt;span class="n"&gt;-Destination&lt;/span&gt; &lt;span class="p"&gt;.\&lt;/span&gt;&lt;span class="n"&gt;powershell&lt;/span&gt;&lt;span class="p"&gt;\.&lt;/span&gt;&lt;span class="n"&gt;env&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ps1&lt;/span&gt;
 &lt;span class="n"&gt;notepad&lt;/span&gt; &lt;span class="p"&gt;.\&lt;/span&gt;&lt;span class="n"&gt;powershell&lt;/span&gt;&lt;span class="p"&gt;\.&lt;/span&gt;&lt;span class="n"&gt;env&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ps1&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;&lt;strong&gt; Préparer son réseau Hyper-V &lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;Il suffit de lancer le script:&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt; 3.2 Préparer son réseau Hyper-V &lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Il suffit de lancer le script :&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="p"&gt;.\&lt;/span&gt;&lt;span class="n"&gt;powershell&lt;/span&gt;&lt;span class="p"&gt;\&lt;/span&gt;&lt;span class="n"&gt;prepare_hyperv&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ps1&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;Ce script permet :&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;de s'assurer que le réseau utilisé par ICS aura bien une adresse en &lt;code&gt;192.168.137.0/24&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;de créer un switch interne Hyper-V avec le nom &lt;code&gt;Vagrant&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;de partager la connexion internet (défini par la variable d'environnement &lt;code&gt;$env:EXTERNAL_CONNECTION_NAME&lt;/code&gt;) avec notre réseau interne dans lequel sera créé la machine virtuelle&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;de s'assurer que le réseau utilisé par ICS aura bien une adresse en &lt;code&gt;192.168.137.0/24&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;de créer un switch interne Hyper-V avec le nom &lt;code&gt;Vagrant&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;de partager la connexion internet (défini par la variable d'environnement &lt;code&gt;$env:EXTERNAL_CONNECTION_NAME&lt;/code&gt;) avec notre réseau interne dans lequel sera créé la machine virtuelle&lt;/p&gt;
+&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;strong&gt; Préparer la machine virtuelle &lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;On lance le script:&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt; 3.3 Préparer la machine virtuelle &lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;On lance le script :&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="p"&gt;.\&lt;/span&gt;&lt;span class="n"&gt;powershell&lt;/span&gt;&lt;span class="p"&gt;\&lt;/span&gt;&lt;span class="n"&gt;prepare_vm&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ps1&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Ce script permet:&lt;/p&gt;
+&lt;p&gt;Ce script permet :&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;d'installer le plugin ProxyConf de Vagrant&lt;/li&gt;
-&lt;li&gt;d'installer le plugin HostManager de Vagrant&lt;/li&gt;
-&lt;li&gt;de récupérer la box generic/debian9 pour le provider hyperv&lt;/li&gt;
-&lt;li&gt;de lancer la machine via vagrant et de la configurer :&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;d'installer le plugin ProxyConf de Vagrant&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;d'installer le plugin HostManager de Vagrant&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;de récupérer la box generic/debian9 pour le provider hyperv&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;de lancer la machine via vagrant et de la configurer :&lt;/p&gt;
+&lt;ul&gt;
 &lt;li&gt;via le shell pour la résolution de nom&lt;/li&gt;
-&lt;li&gt;via ansible_local pour configurer le nom d'hôte, le fqdn, l'ip, le ntp, la locale, installer git, des éditeurs de texte (vim, nano), le proxy cntlm et docker&lt;/li&gt;
-&lt;li&gt;de redémarrer la machine et de la provisionner avec les services suivants :&lt;/li&gt;
+&lt;li&gt;via ansible_local pour configurer le nom d'hôte, le fqdn, l'ip, le ntp, la locale, installer git, des éditeurs de texte (vim, nano), le proxy Cntlm et Docker&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;de redémarrer la machine et de la provisionner avec les services suivants :&lt;/p&gt;
+&lt;ul&gt;
 &lt;li&gt;Registry Docker&lt;/li&gt;
 &lt;li&gt;Reverse proxy Traefik&lt;/li&gt;
 &lt;li&gt;Serveur STMP Mailhog&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;strong&gt; Script à lancer en cas de modification de connexion internet et de proxy &lt;/strong&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;NB : Lors du premier up de la machine, Vagrant posera une question pour savoir quel switch utilisé pour la machine virtuelle. Il faudra donc choisir &lt;strong&gt;Vagrant&lt;/strong&gt; qui est le switch qui a été créé à l'étape précdente.&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt; 3.4 Script à lancer en cas de modification de connexion internet et de proxy &lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;Il suffit de modifier les variables &lt;code&gt;$env:EXTERNAL_CONNECTION_NAME&lt;/code&gt;, &lt;code&gt;$env:EXTERNAL_PROXY_URL&lt;/code&gt; et &lt;code&gt;$env:EXTERNAL_PROXY_NO_PROXY_RULES&lt;/code&gt; dans le fichier &lt;code&gt;powershell\.env.ps1&lt;/code&gt; et ensuite de lancer un script :&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;notepad&lt;/span&gt; &lt;span class="p"&gt;.\&lt;/span&gt;&lt;span class="n"&gt;powershell&lt;/span&gt;&lt;span class="p"&gt;\.&lt;/span&gt;&lt;span class="n"&gt;env&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ps1&lt;/span&gt;
 &lt;span class="p"&gt;.\&lt;/span&gt;&lt;span class="n"&gt;powershell&lt;/span&gt;&lt;span class="p"&gt;\&lt;/span&gt;&lt;span class="n"&gt;change_connection&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ps1&lt;/span&gt;
@@ -356,163 +423,193 @@ Ca c'est la demande minimale mais on va voir par la suite que je vais installer 
 
 &lt;p&gt;ce script va :&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;modifier le partage de connexion internet&lt;/li&gt;
-&lt;li&gt;démarrer la machine si elle n'est pas déjà lancée&lt;/li&gt;
-&lt;li&gt;provisionner la machine pour modifier la configuration de cntlm&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;modifier le partage de connexion internet&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;démarrer la machine si elle n'est pas déjà lancée&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;provisionner la machine pour modifier la configuration de cntlm&lt;/p&gt;
+&lt;/li&gt;
 &lt;/ul&gt;
 &lt;hr&gt;
-&lt;h3&gt;Les explications&lt;/h3&gt;
-&lt;p&gt;&lt;strong&gt; les CmdLet powershell &lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;/p&gt;
+&lt;h3&gt;&lt;strong&gt;4. Les explications&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt; 4.1 les CmdLet powershell &lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;Afin d'automatiser le plus possible le déploiement de ma machine, j'ai créé deux cmdlet powershell disponibles dans le répertoire &lt;code&gt;.\powershell\lib&lt;/code&gt; :&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;
-&lt;p&gt;&lt;code&gt;createVirtualSwitch.ps1&lt;/code&gt; qui permet de créer un switch Hyper-V de type interne et son réseau NAT associé.&lt;br&gt;
-   On veut un type interne pour qu'il ne soit pas nécessaire de changer la machine de switch à chaque fois qu'on change de type de connexion.&lt;br&gt;
-   De plus notre machine virtuelle aura ainsi une adresse IP statique en &lt;em&gt;192.168.137.xxx&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;createVirtualSwitch.ps1&lt;/code&gt; qui permet de créer un switch Hyper-V de type interne et son réseau NAT associé.&lt;/p&gt;
+&lt;p&gt;On veut un type interne pour qu'il ne soit pas nécessaire de changer la machine de switch à chaque fois qu'on change de type de connexion.&lt;/p&gt;
+&lt;p&gt;De plus notre machine virtuelle aura ainsi une adresse IP statique en &lt;code&gt;192.168.137.xxx&lt;/code&gt;.&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;&lt;code&gt;manageSharingInternetConnection.ps1&lt;/code&gt; qui permet de gérer le partage de connexion internet entre une connexion principale (Ethernet ou Wifi) et mon switch Hyper-V interne.&lt;br&gt;
-   Ainsi la machine hôte aura l'adresse ip &lt;em&gt;192.168.137.1&lt;/em&gt; qui fera office de serveur de nom pour ma machine virtuelle.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;manageSharingInternetConnection.ps1&lt;/code&gt; qui permet de gérer le partage de connexion internet entre une connexion principale (Ethernet ou Wifi) et mon switch Hyper-V interne.&lt;/p&gt;
+&lt;p&gt;Ainsi la machine hôte aura l'adresse ip &lt;code&gt;192.168.137.1&lt;/code&gt;. On pourra donc utiliser cette adresse comme serveur de nom pour la machine virtuelle.&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;strong&gt; Vagrantfile &lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt; 4.2 Vagrantfile &lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;Pour fonctionner Vagrant utilise un Vagrantfile dont je vais détailler le contenu.&lt;/p&gt;
-&lt;p&gt;Le nom de la machine pour vagrant (celui qu'on voit quand on fait &lt;code&gt;vagarant global-status&lt;/code&gt;) :&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;define&lt;/span&gt; &lt;span class="n"&gt;ENV&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;VM_HYPERV_NAME&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Le nom de la machine pour vagrant (celui qu'on voit quand on fait &lt;code&gt;vagarant global-status&lt;/code&gt;) :&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;define&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;VM_HYPERV_NAME&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;La box qui sera utilisée :&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;box&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;generic/debian9&amp;quot;&lt;/span&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+La box qui sera utilisée :&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;box&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;generic/debian9&amp;quot;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Le provider utilisé pour notre machine virtuelle, dans mon cas c'est hyperv :&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;provider&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;hyperv&amp;quot;&lt;/span&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Le provider utilisé pour notre machine virtuelle, dans mon cas c'est hyperv :&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;provider&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;hyperv&amp;quot;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;La configuration spécifique au provider hyperv.&lt;br&gt;
-Cela permet de définir le nom de la machine dans le gestionnaire Hyper-V, le nombre de cpu, la RAM à allouer au démarrage, la mémoire maximale pouvant être allouée dynamiquement, le temps maximum à attendre pour que la machine renvoie son IP au démarrage.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;config&lt;/span&gt;.&lt;span class="nv"&gt;vm&lt;/span&gt;.&lt;span class="nv"&gt;provider&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;hyperv&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nv"&gt;hv&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;
-  &lt;span class="nv"&gt;hv&lt;/span&gt;.&lt;span class="nv"&gt;vmname&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;ENV&lt;/span&gt;[&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="s"&gt;VM_HYPERV_NAME&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;]
-  &lt;span class="nv"&gt;hv&lt;/span&gt;.&lt;span class="nv"&gt;cpus&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;ENV&lt;/span&gt;[&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="s"&gt;VM_CPU&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;]
-  &lt;span class="nv"&gt;hv&lt;/span&gt;.&lt;span class="nv"&gt;memory&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;ENV&lt;/span&gt;[&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="s"&gt;VM_MEMORY_STARTUP&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;]
-  &lt;span class="nv"&gt;hv&lt;/span&gt;.&lt;span class="nv"&gt;maxmemory&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;ENV&lt;/span&gt;[&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="s"&gt;VM_MEMORY_MAX&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;]
-  &lt;span class="nv"&gt;hv&lt;/span&gt;.&lt;span class="nv"&gt;ip_address_timeout&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;240&lt;/span&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+La configuration spécifique au provider hyperv.&lt;br&gt;
+Cela permet de définir :&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;le nom de la machine dans le gestionnaire Hyper-V,&lt;/li&gt;
+&lt;li&gt;le nombre de cpu, la RAM à allouer au démarrage,&lt;/li&gt;
+&lt;li&gt;la mémoire maximale pouvant être allouée dynamiquement,&lt;/li&gt;
+&lt;li&gt;le temps maximum à attendre pour que la machine renvoie son IP au démarrage.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;provider&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;hyperv&amp;quot;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;hv&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;
+  &lt;span class="n"&gt;hv&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vmname&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;VM_HYPERV_NAME&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+  &lt;span class="n"&gt;hv&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cpus&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;VM_CPU&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+  &lt;span class="n"&gt;hv&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;memory&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;VM_MEMORY_STARTUP&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+  &lt;span class="n"&gt;hv&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;maxmemory&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;VM_MEMORY_MAX&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+  &lt;span class="n"&gt;hv&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ip_address_timeout&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;240&lt;/span&gt;
 &lt;span class="k"&gt;end&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Le nom d'hôte de la machine (fqdn) :&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;hostname&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;ENV&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;VM_HOSTNAME&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Le nom d'hôte de la machine (fqdn) :&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;hostname&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;VM_HOSTNAME&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Je fige la version de ma box à utiliser.&lt;br&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Je fige la version de ma box à utiliser.&lt;br&gt;
 Si je dois mettre à jour jour ma box, je pourrai lancer la commande &lt;code&gt;vagrant box outdated&lt;/code&gt;.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;box_check_update&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;false&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;box_check_update&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kp"&gt;false&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Le plugin proxyconf permet de paramétrer le proxy pour divers services (git, docker, variables d'environnement, apt).&lt;br&gt;
-J'utilise ma machine virtuelle comme proxy sur le port 3128 car il y aura cntlm qui redirigera vers un proxy externe si il y en a un et sinon en direct.&lt;br&gt;
-De cette manière j'ai juste la conf de cntlm à changer et non pas les paramètres proxy de tous mes services.&lt;br&gt;
-J'utilise directement le proxy externe pour apt comme ça les paquets cifs (nécessaire pour monter mes répertoires smb sur la machine virtuelle) et cntlm pourront être installés avant que cntlm ne soit disponible.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="nv"&gt;Vagrant&lt;/span&gt;.&lt;span class="nv"&gt;has_plugin&lt;/span&gt;?&lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;vagrant-proxyconf&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="ss"&gt;)&lt;/span&gt;
-  &lt;span class="nv"&gt;config&lt;/span&gt;.&lt;span class="nv"&gt;proxy&lt;/span&gt;.&lt;span class="nv"&gt;http&lt;/span&gt;     &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;http://&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="nv"&gt;ENV&lt;/span&gt;[&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="s"&gt;VM_HOSTNAME&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;] &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;:3128/&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
-  &lt;span class="nv"&gt;config&lt;/span&gt;.&lt;span class="nv"&gt;proxy&lt;/span&gt;.&lt;span class="nv"&gt;https&lt;/span&gt;    &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;http://&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="nv"&gt;ENV&lt;/span&gt;[&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="s"&gt;VM_HOSTNAME&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;] &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;:3128/&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
-  &lt;span class="nv"&gt;config&lt;/span&gt;.&lt;span class="nv"&gt;apt_proxy&lt;/span&gt;.&lt;span class="nv"&gt;http&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;ENV&lt;/span&gt;[&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;EXTERNAL_PROXY_URL&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;]
-  &lt;span class="nv"&gt;config&lt;/span&gt;.&lt;span class="nv"&gt;apt_proxy&lt;/span&gt;.&lt;span class="nv"&gt;https&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;ENV&lt;/span&gt;[&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;EXTERNAL_PROXY_URL&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;]
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Le plugin proxyconf permet de paramétrer le proxy pour divers services (git, docker, variables d'environnement, apt).&lt;/p&gt;
+&lt;p&gt;J'utilise ma machine virtuelle comme proxy sur le port 3128 car il y aura cntlm qui redirigera vers un proxy externe si il y en a un et sinon en direct.&lt;br&gt;
+De cette manière j'ai juste la conf de cntlm à changer et non pas les paramètres proxy de tous mes services.&lt;/p&gt;
+&lt;p&gt;J'utilise directement le proxy externe pour apt comme ça les paquets cifs (nécessaire pour monter mes répertoires smb sur la machine virtuelle) et cntlm pourront être installés avant que cntlm ne soit disponible.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="no"&gt;Vagrant&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;has_plugin?&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;vagrant-proxyconf&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;proxy&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;http&lt;/span&gt;     &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;http://&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;VM_HOSTNAME&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;:3128/&amp;quot;&lt;/span&gt;
+  &lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;proxy&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;https&lt;/span&gt;    &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;http://&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;VM_HOSTNAME&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;:3128/&amp;quot;&lt;/span&gt;
+  &lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;apt_proxy&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;http&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;EXTERNAL_PROXY_URL&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+  &lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;apt_proxy&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;https&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;EXTERNAL_PROXY_URL&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
 &lt;span class="k"&gt;end&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Le plugin hostmanager permet de mettre à jour automatiquement le fichier hosts de la machine hôte avec les différents noms auquel doit répondre ma machine virtuelle.&lt;br&gt;
-Je n'ai pas besoin de gérer la machine virtuelle car c'est ma machine hôte qui est serveur de nom pour la machine virtuelle.&lt;br&gt;
-Si je veux modifier, ajouter ous supprimer les alias, il me suffit de modifier la valeur &lt;code&gt;config.hostmanager.aliases&lt;/code&gt; et de lancer la commande &lt;code&gt;vagrant hostmanager&lt;/code&gt;.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="nv"&gt;Vagrant&lt;/span&gt;.&lt;span class="nv"&gt;has_plugin&lt;/span&gt;?&lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;vagrant-hostmanager&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="ss"&gt;)&lt;/span&gt;
-  &lt;span class="nv"&gt;config&lt;/span&gt;.&lt;span class="nv"&gt;hostmanager&lt;/span&gt;.&lt;span class="nv"&gt;enabled&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;true&lt;/span&gt;
-  &lt;span class="nv"&gt;config&lt;/span&gt;.&lt;span class="nv"&gt;hostmanager&lt;/span&gt;.&lt;span class="nv"&gt;manage_host&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;true&lt;/span&gt;
-  &lt;span class="nv"&gt;config&lt;/span&gt;.&lt;span class="nv"&gt;hostmanager&lt;/span&gt;.&lt;span class="nv"&gt;manage_guest&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;false&lt;/span&gt;
-  &lt;span class="nv"&gt;config&lt;/span&gt;.&lt;span class="nv"&gt;hostmanager&lt;/span&gt;.&lt;span class="nv"&gt;ignore_private_ip&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;false&lt;/span&gt;
-  &lt;span class="nv"&gt;config&lt;/span&gt;.&lt;span class="nv"&gt;hostmanager&lt;/span&gt;.&lt;span class="nv"&gt;aliases&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; [&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="s"&gt;registry.docker.&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="nv"&gt;ENV&lt;/span&gt;[&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="s"&gt;DEV_DOMAIN&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;], &lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="s"&gt;traefik.&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="nv"&gt;ENV&lt;/span&gt;[&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="s"&gt;DEV_DOMAIN&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;], &lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="s"&gt;mailhog.&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="nv"&gt;ENV&lt;/span&gt;[&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="s"&gt;DEV_DOMAIN&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;]]
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Le plugin hostmanager permet de mettre à jour automatiquement le fichier hosts de la machine hôte avec les différents alias qui pourront être associés à ma machine virtuelle.&lt;/p&gt;
+&lt;p&gt;Je n'ai pas besoin de gérer le fichier hosts de la machine virtuelle car c'est ma machine hôte qui est serveur de nom pour la machine virtuelle.&lt;/p&gt;
+&lt;p&gt;Si je veux modifier, ajouter ou supprimer des alias, il me suffit de modifier la valeur &lt;code&gt;config.hostmanager.aliases&lt;/code&gt; et de lancer la commande &lt;code&gt;vagrant hostmanager&lt;/code&gt;.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="no"&gt;Vagrant&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;has_plugin?&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;vagrant-hostmanager&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;hostmanager&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;enabled&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kp"&gt;true&lt;/span&gt;
+  &lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;hostmanager&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;manage_host&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kp"&gt;true&lt;/span&gt;
+  &lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;hostmanager&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;manage_guest&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kp"&gt;false&lt;/span&gt;
+  &lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;hostmanager&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ignore_private_ip&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kp"&gt;false&lt;/span&gt;
+  &lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;hostmanager&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;aliases&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;registry.docker.&amp;#39;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;DEV_DOMAIN&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;traefik.&amp;#39;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;DEV_DOMAIN&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;mailhog.&amp;#39;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;DEV_DOMAIN&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]]&lt;/span&gt;
 &lt;span class="k"&gt;end&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Je vais monter deux répertoires de ma machine hôte dans ma machine virtuelle (le répertoire courant pour pouvoir faire du provisioning via ansible_local notamment et un répertoire pour mes projets).&lt;br&gt;
-Il s'agit de répertoire de type smb (du coup à la création de la machine il faudra un peu de temps à la machine pour installer cifs) pour partager entre une machine windows 10 et une machine linux.&lt;br&gt;
-Je monte avec un uid et un gid à 1000 (forcés) dans la machine hôte car il s'agit de l'utilisateur vagrant dans ma debian.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;synced_folder&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;.&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;/vagrant&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;type&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;smb&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-  &lt;span class="n"&gt;smb_password&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;ENV&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;SMB_PASSWORD&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;smb_username&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;ENV&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;SMB_USERNAME&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;mount_options&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="ss"&gt;&amp;quot;iocharset=utf8&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="ss"&gt;&amp;quot;uid=1000&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="ss"&gt;&amp;quot;gid=1000&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="ss"&gt;&amp;quot;forcegid&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="ss"&gt;&amp;quot;forceuid&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="ss"&gt;&amp;quot;dynperm&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;synced_folder&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;../myprojects&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;/myprojects&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;type&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;smb&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-      &lt;span class="n"&gt;smb_password&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;ENV&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;SMB_PASSWORD&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;smb_username&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;ENV&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;SMB_USERNAME&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;mount_options&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="ss"&gt;&amp;quot;iocharset=utf8&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="ss"&gt;&amp;quot;uid=1000&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="ss"&gt;&amp;quot;gid=1000&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="ss"&gt;&amp;quot;forcegid&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="ss"&gt;&amp;quot;forceuid&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="ss"&gt;&amp;quot;dynperm&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="ss"&gt;&amp;quot;mfsymlinks&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Je vais monter deux répertoires de ma machine hôte dans ma machine virtuelle (le répertoire courant pour notamment pouvoir faire du provisioning via ansible_local et un répertoire pour mes futurs projets).&lt;/p&gt;
+&lt;p&gt;Il s'agit dans les deux cas de répertoire de type smb (du coup à la création de la machine il faudra un peu de temps à la machine pour installer cifs). Je choisis smb car il faut partager  entre une machine windows 10 et une machine linux.&lt;/p&gt;
+&lt;p&gt;Je monte avec un uid et un gid à 1000 (forcés) dans la machine hôte car il s'agit de l'utilisateur vagrant dans ma debian (qui sera l'utilisateur que j'utiliserai par défaut).&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;synced_folder&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;.&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;/vagrant&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;type&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;smb&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+  &lt;span class="ss"&gt;smb_password&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;SMB_PASSWORD&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;smb_username&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;SMB_USERNAME&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;mount_options&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;iocharset=utf8&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;uid=1000&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;gid=1000&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;forcegid&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;forceuid&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;dynperm&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;synced_folder&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;../myprojects&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;/myprojects&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;type&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;smb&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+      &lt;span class="ss"&gt;smb_password&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;SMB_PASSWORD&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;smb_username&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;SMB_USERNAME&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;mount_options&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;iocharset=utf8&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;uid=1000&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;gid=1000&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;forcegid&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;forceuid&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;dynperm&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;mfsymlinks&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;La machine est provisionné via le shell, une seule fois au premier démarrage.&lt;br&gt;
-Cela me permet de mettre à jour le serveur de nom avec l'adresse 192.168.137.1 de ma machine hôte.&lt;br&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+La machine est provisionnée tout d'abord via le shell, une seule fois au premier démarrage.&lt;/p&gt;
+&lt;p&gt;Cela me permet de mettre à jour le serveur de nom avec l'adresse 192.168.137.1 (qui est l'interface de ma machine hôte dans le réseau Vagrant).&lt;br&gt;
 Je mets également à jour le domaine de recherche local.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;config&lt;/span&gt;.&lt;span class="nv"&gt;vm&lt;/span&gt;.&lt;span class="nv"&gt;provision&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;shell_init&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;, &lt;span class="nv"&gt;type&lt;/span&gt;:&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;shell&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;, &lt;span class="nv"&gt;run&lt;/span&gt;: &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;once&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nv"&gt;shell&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;
-  &lt;span class="nv"&gt;shell&lt;/span&gt;.&lt;span class="nv"&gt;path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;./provisioning/shell/updateresolvconf.sh&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
-  &lt;span class="nv"&gt;shell&lt;/span&gt;.&lt;span class="nv"&gt;args&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; [&lt;span class="nv"&gt;ENV&lt;/span&gt;[&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="s"&gt;DEV_DOMAIN&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;]]
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;provision&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;shell_init&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;type&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;shell&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;run&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;once&amp;quot;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;shell&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;
+  &lt;span class="n"&gt;shell&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;./provisioning/shell/updateresolvconf.sh&amp;quot;&lt;/span&gt;
+  &lt;span class="n"&gt;shell&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;DEV_DOMAIN&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]]&lt;/span&gt;
 &lt;span class="k"&gt;end&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;La machine est ensuite provisionné via ansible_local, une seule fois au premier démarrage.&lt;br&gt;
-ansible est installé via pip (et je dois gérer l'éventuel proxy car cntlm n'est pas encore disponible).&lt;br&gt;
-Je choisis la version 2.8.0 qui ets la dernière version à ce jour.&lt;br&gt;
-Ce provisonnement lance le playbook init.yaml qui permet de configurer la locale, la timezone, gérer le fichier /etc/hosts puis installer divers packages (git, editeurs, curl) et enfin l'installation de cntlm et docker.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;config&lt;/span&gt;.&lt;span class="nv"&gt;vm&lt;/span&gt;.&lt;span class="nv"&gt;provision&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;ansible_local_init&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;, &lt;span class="nv"&gt;type&lt;/span&gt;:&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;ansible_local&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;, &lt;span class="nv"&gt;run&lt;/span&gt;: &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;once&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nv"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;
-  &lt;span class="nv"&gt;ansible&lt;/span&gt;.&lt;span class="nv"&gt;config_file&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;/vagrant/provisioning/ansible/.ansible.cfg&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
-  &lt;span class="nv"&gt;ansible&lt;/span&gt;.&lt;span class="nv"&gt;playbook&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;/vagrant/provisioning/ansible/init.yaml&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
-  &lt;span class="nv"&gt;ansible&lt;/span&gt;.&lt;span class="nv"&gt;install_mode&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;pip&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
-  &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="nv"&gt;ENV&lt;/span&gt;[&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="s"&gt;EXTERNAL_PROXY_URL&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;] &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;DIRECT&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
-    &lt;span class="nv"&gt;ansible&lt;/span&gt;.&lt;span class="nv"&gt;pip_args&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;--proxy &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="nv"&gt;ENV&lt;/span&gt;[&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;EXTERNAL_PROXY_URL&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;]
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+La machine est ensuite provisionnée via ansible_local, toujours une seule fois au premier démarrage.&lt;/p&gt;
+&lt;p&gt;Ansible est installé via pip (et je dois gérer l'éventuel proxy car cntlm n'est pas encore disponible).&lt;/p&gt;
+&lt;p&gt;Je choisis la version 2.8.0 qui est la dernière version à ce jour.&lt;/p&gt;
+&lt;p&gt;Ce provisonnement lance le playbook init.yaml qui permet de configurer la locale, la timezone, gérer le fichier /etc/hosts puis installer divers packages (git, editeurs, curl) et enfin l'installation de cntlm et docker.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;provision&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;ansible_local_init&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;type&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;ansible_local&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;run&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;once&amp;quot;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;
+  &lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;config_file&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;/vagrant/provisioning/ansible/.ansible.cfg&amp;quot;&lt;/span&gt;
+  &lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;playbook&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;/vagrant/provisioning/ansible/init.yaml&amp;quot;&lt;/span&gt;
+  &lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;install_mode&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;pip&amp;quot;&lt;/span&gt;
+  &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;EXTERNAL_PROXY_URL&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;DIRECT&amp;quot;&lt;/span&gt;
+    &lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pip_args&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;--proxy &amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;EXTERNAL_PROXY_URL&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
   &lt;span class="k"&gt;end&lt;/span&gt;
-  &lt;span class="nv"&gt;ansible&lt;/span&gt;.&lt;span class="nv"&gt;version&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;2.8.0&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
-  &lt;span class="nv"&gt;ansible&lt;/span&gt;.&lt;span class="nv"&gt;compatibility_mode&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;2.0&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
-  &lt;span class="nv"&gt;ansible&lt;/span&gt;.&lt;span class="nv"&gt;extra_vars&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; {
-    &lt;span class="nv"&gt;localdomain&lt;/span&gt;: &lt;span class="nv"&gt;ENV&lt;/span&gt;[&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="s"&gt;DEV_DOMAIN&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;],
-    &lt;span class="nv"&gt;external_proxy_url&lt;/span&gt;: &lt;span class="nv"&gt;ENV&lt;/span&gt;[&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="s"&gt;EXTERNAL_PROXY_URL&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;],
-    &lt;span class="nv"&gt;external_proxy_no_proxy_rules&lt;/span&gt;: &lt;span class="nv"&gt;ENV&lt;/span&gt;[&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="s"&gt;EXTERNAL_PROXY_NO_PROXY_RULES&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;]
-  }
-  &lt;span class="nv"&gt;ansible&lt;/span&gt;.&lt;span class="nv"&gt;verbose&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt;
+  &lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;version&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;2.8.0&amp;quot;&lt;/span&gt;
+  &lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;compatibility_mode&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;2.0&amp;quot;&lt;/span&gt;
+  &lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;extra_vars&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="ss"&gt;localdomain&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;DEV_DOMAIN&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="ss"&gt;external_proxy_url&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;EXTERNAL_PROXY_URL&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="ss"&gt;external_proxy_no_proxy_rules&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;EXTERNAL_PROXY_NO_PROXY_RULES&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+  &lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;verbose&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt;
 &lt;span class="k"&gt;end&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Ensuite, il s'agit d'un provisionnement qui ne s'exécute qu'à la demande (&lt;code&gt;run: "never"&lt;/code&gt;) et qui permet de déployer le reverse_proxy traefik, la registry docker et le serveur smtp Mailhog sous forme de container docker.&lt;br&gt;
-Ce provisionnement est lancé après le premier up de la machine et un reload pour être sûr que docker et cntlm sont présents et paramétrés.&lt;br&gt;
-Les répertoires de données des containers sont des volumes docker de type "bind mount" qui sont dans un répertoire partagé entre la machine hôte et la machine virtuelle. Comme ça, ma registry docker est déjà alimenté si je détruis et recrée ma machine.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;config&lt;/span&gt;.&lt;span class="nv"&gt;vm&lt;/span&gt;.&lt;span class="nv"&gt;provision&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;ansible_local_services&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;, &lt;span class="nv"&gt;type&lt;/span&gt;:&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;ansible_local&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;, &lt;span class="nv"&gt;run&lt;/span&gt;: &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;never&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nv"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;
-  &lt;span class="nv"&gt;ansible&lt;/span&gt;.&lt;span class="nv"&gt;config_file&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;/vagrant/provisioning/ansible/.ansible.cfg&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
-  &lt;span class="nv"&gt;ansible&lt;/span&gt;.&lt;span class="nv"&gt;playbook&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;/vagrant/provisioning/ansible/services.yaml&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
-  &lt;span class="nv"&gt;ansible&lt;/span&gt;.&lt;span class="nv"&gt;compatibility_mode&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;2.0&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
-  &lt;span class="nv"&gt;ansible&lt;/span&gt;.&lt;span class="nv"&gt;extra_vars&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; {
-    &lt;span class="nv"&gt;localdomain&lt;/span&gt;: &lt;span class="nv"&gt;ENV&lt;/span&gt;[&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="s"&gt;DEV_DOMAIN&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;]
-  }
-  &lt;span class="nv"&gt;ansible&lt;/span&gt;.&lt;span class="nv"&gt;verbose&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Ensuite, il s'agit d'un provisionnement qui ne s'exécute qu'à la demande (&lt;code&gt;run: "never"&lt;/code&gt;) et qui permet de déployer le reverse_proxy traefik, la registry docker et le serveur smtp Mailhog sous forme de container docker.&lt;/p&gt;
+&lt;p&gt;Ce provisionnement est lancé après le premier up de la machine et un reload pour être sûr que docker et cntlm sont présents et paramétrés.&lt;/p&gt;
+&lt;p&gt;Les répertoires de données des containers sont des volumes docker de type "bind mount" qui sont dans un répertoire partagé entre la machine hôte et la machine virtuelle. Comme ça, ma registry docker est déjà alimentée si je dois détruire et créer à nouveau ma machine.&lt;/p&gt;
+&lt;p&gt;Les containers sont lancés avec l'option &lt;code&gt;restart: always&lt;/code&gt; pour pouvoir être lancés automatiquement au démarrage de la machine (comme des services).&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;provision&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;ansible_local_services&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;type&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;ansible_local&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;run&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;never&amp;quot;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;
+  &lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;config_file&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;/vagrant/provisioning/ansible/.ansible.cfg&amp;quot;&lt;/span&gt;
+  &lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;playbook&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;/vagrant/provisioning/ansible/services.yaml&amp;quot;&lt;/span&gt;
+  &lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;compatibility_mode&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;2.0&amp;quot;&lt;/span&gt;
+  &lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;extra_vars&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="ss"&gt;localdomain&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;DEV_DOMAIN&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+  &lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;verbose&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt;
 &lt;span class="k"&gt;end&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Enfin, le dernier provisionnement qui ne s'exécute qu'à la demande (&lt;code&gt;run: "never"&lt;/code&gt;) et qui permet de modifier la configuration de CNTLM.&lt;br&gt;
-Dans la machine virtuelle cntlm tourne sur le port 3128 et a les règles suivantes:&lt;br&gt;
-- si un proxy externe est défini, cntlm redirige vers ce proxy sauf les ip locales, le nom de domaine local et  les règles no_proxy du proxy externe.&lt;br&gt;
-- si le proxy externe est à DIRECT, cntlm est positionné avec des règles no_proxy à "*" donc tout passe directement.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;config&lt;/span&gt;.&lt;span class="nv"&gt;vm&lt;/span&gt;.&lt;span class="nv"&gt;provision&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;ansible_local_updateproxy&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;, &lt;span class="nv"&gt;type&lt;/span&gt;:&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;ansible_local&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;, &lt;span class="nv"&gt;run&lt;/span&gt;: &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;never&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nv"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;
-  &lt;span class="nv"&gt;ansible&lt;/span&gt;.&lt;span class="nv"&gt;config_file&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;/vagrant/provisioning/ansible/.ansible.cfg&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
-  &lt;span class="nv"&gt;ansible&lt;/span&gt;.&lt;span class="nv"&gt;playbook&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;/vagrant/provisioning/ansible/updateproxy.yaml&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
-  &lt;span class="nv"&gt;ansible&lt;/span&gt;.&lt;span class="nv"&gt;compatibility_mode&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;2.0&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
-  &lt;span class="nv"&gt;ansible&lt;/span&gt;.&lt;span class="nv"&gt;extra_vars&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; {
-    &lt;span class="nv"&gt;localdomain&lt;/span&gt;: &lt;span class="nv"&gt;ENV&lt;/span&gt;[&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="s"&gt;DEV_DOMAIN&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;],
-    &lt;span class="nv"&gt;external_proxy_url&lt;/span&gt;: &lt;span class="nv"&gt;ENV&lt;/span&gt;[&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="s"&gt;EXTERNAL_PROXY_URL&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;],
-    &lt;span class="nv"&gt;external_proxy_no_proxy_rules&lt;/span&gt;: &lt;span class="nv"&gt;ENV&lt;/span&gt;[&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="s"&gt;EXTERNAL_PROXY_NO_PROXY_RULES&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;]
-  }
-  &lt;span class="nv"&gt;ansible&lt;/span&gt;.&lt;span class="nv"&gt;verbose&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
+Enfin, le dernier provisionnement qui lui aussi ne s'exécute qu'à la demande (&lt;code&gt;run: "never"&lt;/code&gt;) et qui permet de modifier la configuration de CNTLM.&lt;/p&gt;
+&lt;p&gt;Dans la machine virtuelle cntlm tourne sur le port 3128 et a les règles suivantes :&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;si un proxy externe est défini, cntlm redirige vers ce proxy sauf les ip locales (localhost, 127.0.0.*, 192.168.*, 10.*), le nom de domaine local (*.charloup.test) et les règles no_proxy du proxy externe.&lt;/li&gt;
+&lt;li&gt;si le proxy externe est à DIRECT, cntlm est positionné avec des règles no_proxy à "*" donc tout passe directement.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;provision&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;ansible_local_updateproxy&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;type&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;ansible_local&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;run&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;never&amp;quot;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;
+  &lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;config_file&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;/vagrant/provisioning/ansible/.ansible.cfg&amp;quot;&lt;/span&gt;
+  &lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;playbook&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;/vagrant/provisioning/ansible/updateproxy.yaml&amp;quot;&lt;/span&gt;
+  &lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;compatibility_mode&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;2.0&amp;quot;&lt;/span&gt;
+  &lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;extra_vars&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="ss"&gt;localdomain&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;DEV_DOMAIN&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="ss"&gt;external_proxy_url&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;EXTERNAL_PROXY_URL&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="ss"&gt;external_proxy_no_proxy_rules&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;EXTERNAL_PROXY_NO_PROXY_RULES&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+  &lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;verbose&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt;
 &lt;span class="k"&gt;end&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 

@@ -103,13 +103,14 @@
 </ul>
 <p>Donc c'est parti.</p>
 <hr>
-<h3>Détail du Dockerfile</h3>
-<p>On part donc de l'image de base debian:stretch pour construire l'image</p>
+<h3><strong>1. Détail du Dockerfile</strong></h3>
+<p>L'image sera construite en partant de l'image Docker officielle debian stretch.</p>
 <div class="highlight"><pre><span></span><span class="k">FROM</span><span class="s"> debian:stretch</span>
 </pre></div>
 
 
-<p>On ajoute des étiquettes à notre image :</p>
+<p><br><br>
+Ajout de quelques étiquettes à l'image.</p>
 <div class="highlight"><pre><span></span><span class="k">LABEL</span> <span class="nv">version</span><span class="o">=</span><span class="s2">&quot;1.0&quot;</span>
 <span class="k">LABEL</span> <span class="nv">maintainer</span><span class="o">=</span><span class="s2">&quot;christophe.barriere@developpement-durable.gouv.fr&quot;</span>
 <span class="k">LABEL</span> <span class="nv">description</span><span class="o">=</span><span class="s2">&quot;Image Docker pour un OS Debian avec: \</span>
@@ -119,18 +120,28 @@
 </pre></div>
 
 
-<p>L'installation est automatique donc on ne veut pas que debconf pose des quetions lors de l'installation ou la configuration de paquets :</p>
+<p><br><br>
+L'installation est automatique donc passage en mode "non interactif" pour que debconf ne pose pas de questions lors de l'installation ou lors de la configuration des paquets.</p>
 <div class="highlight"><pre><span></span><span class="k">ENV</span> DEBIAN_FRONTEND noninteractive
 </pre></div>
 
 
-<p>On ne veut pas de bootloader :</p>
+<p><br><br>
+Pas de bootloader.</p>
 <div class="highlight"><pre><span></span><span class="k">ENV</span> INITRD No
 </pre></div>
 
 
-<p>On met à jour la liste des paquets, on installe nginx, openssh-server et les locales sans demander de confirmation (option -y), sans installer les paquets recommandés en plus (option --no-install-recommends) pour pouvoir limiter la taille de l'image et on nettoie le cache apt (également pour limiter la taille de l'image)<br>
-NB: Tout en une seule commande Dockerfile pour pouvoir optimiser les couches de notre image.</p>
+<p><br><br>
+La commande suivante permet :</p>
+<ul>
+<li>de mettre à jour la liste des paquets,</li>
+<li>d'installer les paquets <code>nginx</code>, <code>openssh-server</code> et les <code>locales</code>,</li>
+<li>d'installer sans demander de confirmation (option <code>-y</code>),</li>
+<li>de ne pas installer les paquets recommandés (option <code>--no-install-recommends</code>) pour pouvoir limiter la taille de l'image,</li>
+<li>de nettoyer le cache apt (également pour limiter la taille de l'image)</li>
+</ul>
+<p>NB : Tout en une seule commande Dockerfile pour pouvoir optimiser les couches de l'image.</p>
 <div class="highlight"><pre><span></span><span class="k">RUN</span> apt-get update <span class="se">\</span>
  <span class="o">&amp;&amp;</span> apt-get install -y --no-install-recommends nginx openssh-server locales <span class="se">\</span>
  <span class="o">&amp;&amp;</span> apt-get clean <span class="se">\</span>
@@ -138,96 +149,109 @@ NB: Tout en une seule commande Dockerfile pour pouvoir optimiser les couches de 
 </pre></div>
 
 
-<p>Gestion de la locale (fr_FR.UTF-8) et de la timezone (Europe/Paris) :</p>
+<p><br><br>
+Gestion de la locale <code>fr_FR.UTF-8</code> et de la timezone <code>Europe/Paris</code>.</p>
 <div class="highlight"><pre><span></span><span class="k">RUN</span> ln -fs /usr/share/zoneinfo/Europe/Paris /etc/localtime <span class="se">\</span>
   <span class="o">&amp;&amp;</span> dpkg-reconfigure -f noninteractive tzdata <span class="se">\</span>
   <span class="o">&amp;&amp;</span> <span class="nb">echo</span> fr_FR.UTF-8 UTF-8 &gt; /etc/locale.gen <span class="o">&amp;&amp;</span> locale-gen --purge en_US.UTF-8
 </pre></div>
 
 
-<p>Ajout de la configuration nginx dans l'image.<br>
-NB: deux choses importantes dans cette configuration :</p>
+<p><br><br>
+Ajout de la configuration nginx dans l'image.</p>
+<p>NB : deux choses importantes dans cette configuration :</p>
 <ul>
 <li>les fichiers du site seront dans le répertoire <code>/site_files</code> du container</li>
-<li>nginx sera démarré en mode daemon off pour qu'il reste au premier plan afin que docker puisse suivre correctement le processus (sinon le conteneur s'arrêtera immédiatement après le démarrage)</li>
+<li>nginx sera démarré en mode <code>daemon off</code> pour qu'il reste au premier plan afin que docker puisse suivre correctement le processus (sinon le conteneur s'arrêtera immédiatement après le démarrage)</li>
 </ul>
 <div class="highlight"><pre><span></span><span class="k">ADD</span> nginx.conf /etc/nginx/nginx.conf
 </pre></div>
 
 
-<p>On veut un volume docker pour la persistence des données du site (le répertoire qui contient les fichiers servis par Nginx).<br>
-NB : le mieux sera de faire un montage de type bind sur ce volume lorqu'on lancera le container car de cette façon on pourra modifier les fichiers du site web directement dans l'hôte et non pas dans le container).</p>
+<p><br><br>
+Le container aura un volume Docker pour la persistence des données du site (le répertoire <code>/site_files</code> qui contient les fichiers servis par Nginx).</p>
+<p>NB : au lancement du container avec un montage de type bind pour ce volume, il sera facile de modifier les fichiers du site web directement dans l'hôte et non pas dans le container.</p>
 <div class="highlight"><pre><span></span><span class="k">VOLUME</span><span class="s"> /site_files</span>
 </pre></div>
 
 
-<p>Il doit y avoir un répertoire /var/run/sshd pour le pidfile du serveur ssh.</p>
+<p><br><br>
+Il doit y avoir un répertoire <code>/var/run/sshd</code> pour le pidfile du serveur ssh.</p>
 <div class="highlight"><pre><span></span><span class="k">RUN</span> mkdir /var/run/sshd
 </pre></div>
 
 
-<p>On ajoute notre clé publique pour que l'utilisateur root puisse se connecter avec sa clé privée en ssh.</p>
+<p><br><br>
+Ajout de la clé publique pour que l'utilisateur root puisse se connecter avec sa clé privée en ssh.</p>
 <div class="highlight"><pre><span></span><span class="k">ADD</span> id_rsa.pub /root/.ssh/root-connect_id_rsa.pub
 <span class="k">RUN</span> cat /root/.ssh/root-connect_id_rsa.pub &gt; /root/.ssh/authorized_keys
 </pre></div>
 
 
-<p>On modifie la configuration du serveur SSH pour autoriser root à se logguer en SSH<br>
-NB : J'ai fait simple. Idéalement il faudrait créer un nouvel utilisateur avec les droits sudo.</p>
+<p><br><br>
+Modification de la configuration du serveur ssh pour autoriser la connexion en ssh au compte root.</p>
+<p>NB : J'ai fait simple. Idéalement il faudrait créer un nouvel utilisateur avec les droits sudo et laisser l'interdiction de connexion ssh pour le compte root.</p>
 <div class="highlight"><pre><span></span><span class="k">RUN</span> sed -i <span class="s1">&#39;s/#PermitRootLogin prohibit-password/PermitRootLogin yes/&#39;</span> /etc/ssh/sshd_config
 </pre></div>
 
 
-<p>On expose le port 22 (port pour le SSH) et le port 80 (pour nginx) dans le container.<br>
-NB : Il faudra mapper correctement ces ports lorsqu'on lance le container. En effet le port 22 par exemple est déjà utilisé dans la machine hôte.</p>
+<p><br><br>
+Le port 22 (port pour le SSH) et le port 80 (pour nginx) seront exposés par le container.</p>
+<p>NB : Il conviendra ensuite de mapper correctement ces ports lorsqu'on lance le container. En effet le port 22 est déjà utilisé par le serveur ssh de la machine de développement. C'est la même chose pour le port 80 qui est déjà exposé dans la machine de développement par le container Traefik.</p>
 <div class="highlight"><pre><span></span><span class="k">EXPOSE</span><span class="s"> 22 80</span>
 </pre></div>
 
 
-<p>Le container sera lancé par l'utilisateur root.</p>
+<p><br><br>
+Le container sera lancé par l'utilisateur root.</p>
 <div class="highlight"><pre><span></span><span class="k">USER</span><span class="s"> root</span>
 </pre></div>
 
 
-<p>On redirige les logs de nginx vers les sorties standards (de cette façon on pourra voir les logs avec la commande <code>docker logs &lt;nom_du_container&gt;</code>).</p>
+<p><br><br>
+Les logs de nginx sont redirigés vers les sorties standards (de cette façon, les logs d'un container pourront être accesibles via la commande <code>docker logs &lt;nom_du_container&gt;</code>).</p>
 <div class="highlight"><pre><span></span><span class="k">RUN</span> ln -sf /dev/stdout /var/log/nginx/access.log <span class="se">\</span>
     <span class="o">&amp;&amp;</span> ln -sf /dev/stderr /var/log/nginx/error.log
 </pre></div>
 
 
-<p>On ajoute la commande de lancement à la racine du container.<br>
-NB : cette commande lancera dans un même processus (que docker peut suivre) à la fois le serveur ssh et le serveur nginx.</p>
+<p><br><br>
+Ajout du fichier <code>container_command.sh</code> à la racine de l'image. Ce fichier servira comme commande de lancement du container.</p>
+<p>NB : cette commande permettra de lancer dans un même processus (que docker peut suivre) à la fois le serveur ssh et le serveur nginx.</p>
 <div class="highlight"><pre><span></span><span class="k">ADD</span> container_command.sh /
 </pre></div>
 
 
-<p>On definit la commande de lancement du container.</p>
+<p><br><br>
+Le fichier <code>/container_command.sh</code>, précédemment copié est défini comme commande de lancement du container.</p>
 <div class="highlight"><pre><span></span><span class="k">CMD</span> <span class="p">[</span><span class="s2">&quot;sh&quot;</span><span class="p">,</span> <span class="s2">&quot;/container_command.sh&quot;</span><span class="p">]</span>
 </pre></div>
 
 
 <hr>
-<h3>Construction de l'image</h3>
-<p>Dans le répertoire de notre projet, il faut lancer la commande suivante :</p>
+<p><br></p>
+<h3><strong>2. Construction de l'image</strong></h3>
+<p>Dans le répertoire du projet, il faut lancer la commande suivante :</p>
 <div class="highlight"><pre><span></span>docker build --rm -t registry.docker.charloup.test:5000/nginx_with_ssh:1 .
 </pre></div>
 
 
-<p>Explications :</p>
+<p><br><br>
+Explications :</p>
 <ul>
 <li>
 <p>option <code>--rm</code> : permet de supprimer les images intermédiaires après un build réussi</p>
 </li>
 <li>
-<p>option <code>-t</code> pour donner un nom à mon image (j'ai mis ma registry comme ça je pourrai la pousser par la suite avec <code>docker push registry.docker.charloup.test:5000/nginx_with_ssh:1</code>)</p>
+<p>option <code>-t</code> : pour donner un nom à mon image (ici le nom comporte ma registry comme ça je pourrai la pousser par la suite avec <code>docker push registry.docker.charloup.test:5000/nginx_with_ssh:1</code>)</p>
 </li>
 <li>
-<p>on envoie le répertoire courant comme contexte pour construire l'image</p>
+<p><code>.</code> : c'est le répertoire courant qui est envoyé comme contexte pour construire l'image</p>
 </li>
 </ul>
 <hr>
-<h3>Lancement du container</h3>
-<p>Dans le répertoire de notre projet, il faut lancer la commande suivante :</p>
+<h3><strong>3. Lancement du container</strong></h3>
+<p>Dans le répertoire du projet, il faut lancer la commande suivante :</p>
 <div class="highlight"><pre><span></span>docker run -d <span class="se">\</span>
   -p <span class="m">2222</span>:22 -p <span class="m">8080</span>:80 <span class="se">\</span>
   --mount <span class="nv">type</span><span class="o">=</span>bind,source<span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">&quot;</span>/site_files,target<span class="o">=</span>/site_files <span class="se">\</span>
@@ -236,55 +260,68 @@ NB : cette commande lancera dans un même processus (que docker peut suivre) à 
 </pre></div>
 
 
-<p>Explications :</p>
+<p><br><br>
+Explications :</p>
 <ul>
 <li>
-<p>option <code>-d</code> : lancement en mode détaché</p>
+<p>option <code>-d</code> : lancement en mode détaché.</p>
 </li>
 <li>
-<p>option <code>-p 2222:22</code> : on mappe le port 22 du container sur le port 2222 de notre machine hôte. De cette manière on pourra se connecter en ssh dans le container en utilisant localhost sur le port 2222</p>
+<p>option <code>-p 2222:22</code> : le port 22 exposé par le container est mappé sur le port 2222 de la machine de développement.<br>
+  De cette manière la connexion en ssh au container se fera en utilisant localhost sur le port 2222.</p>
 </li>
 <li>
-<p>option <code>-p 8080:80</code> : on mappe le port 80 du container sur le port 8080 de la machine hôte. Notre serveur web nginx dans le container sera donc accessible via http://localhost:8080 dans la machine hôte</p>
+<p>option <code>-p 8080:80</code> : le port 80 exposé par le container est mappé sur le port 8080 de la machine de développement.<br>
+  Le serveur web nginx du container sera donc accessible via <a href="http://localhost:8080">http://localhost:8080</a> dans la machine de développement.</p>
 </li>
 <li>
-<p>option <code>--mount type=bind,source="$(pwd)"/site_files,target=/site_files</code> : on monte le répertoire site_files de notre machine hôte dans le répertoire <code>/site_files</code> du container (celui qui est servi par nginx)</p>
+<p>option <code>--mount type=bind,source="$(pwd)"/site_files,target=/site_files</code> : Le répertoire relatif site_files de la machine de développement est monté dans le répertoire <code>/site_files</code> du container (celui qui est servi par nginx)</p>
 </li>
 <li>
-<p>option <code>--name nginx_ssh</code> : on donne un nom au container. Par exemple ensuite pour voir les processus qui tournent dans le container, on fait <code>docker top nginx_ssh</code></p>
+<p>option <code>--name nginx_ssh</code> : Le container aura le nom <code>nginx_ssh</code>.<br>
+  Par exemple ensuite pour voir les processus qui tournent dans le container, il suffit d'utiliser la commande <code>docker top nginx_ssh</code>.</p>
 </li>
 <li>
-<p>on lance le container à partir de l'image <code>registry.docker.charloup.test:5000/nginx_with_ssh:1</code> précédemment construite</p>
+<p>et bien sûr le container est démarré à partir de l'image <code>registry.docker.charloup.test:5000/nginx_with_ssh:1</code> qui vient d'être précédemment construite.</p>
 </li>
 </ul>
 <hr>
-<h3>Vérification</h3>
+<p><br></p>
+<h3><strong>4. Vérification</strong></h3>
 <ul>
 <li>
-<p>Site web : <code>curl http://localhost:8080</code> nous retourne <code>Ceci est l'index de mon site servi Nginx dans un container Docker</code> qui est le contenu de mon fichier site_files/index.html dans la machine hôte</p>
+<p>Site web :</p>
+<p><code>curl http://localhost:8080</code> retourne <code>Ceci est l'index de mon site servi Nginx dans un container Docker</code>.</p>
+<p>Il s'agit bien du contenu du fichier site_files/index.html de la machine de développement.</p>
 </li>
 <li>
-<p>Modification du site : <code>echo 'Mes modifications' &gt; ./site_files/index.html &amp;&amp; curl http://localhost:8080</code> m'affiche bien <code>Mes modifications</code></p>
+<p>Modification du site :</p>
+<p><code>echo 'Mes modifications' &gt; ./site_files/index.html &amp;&amp; curl http://localhost:8080</code> affiche bien <code>Mes modifications</code>.</p>
 </li>
 <li>
-<p>Connexion ssh : <code>ssh -i chemin_vers_ma_cle_privee root@localhost -p 2222</code> =&gt; OK on est bien connecté en ssh dans le container</p>
+<p>Connexion ssh :</p>
+<p><code>ssh -i chemin_vers_ma_cle_privee root@localhost -p 2222</code><br>
+Ok pour la connexion ssh en root dans le container.</p>
 </li>
 </ul>
 <hr>
-<h3>Remarques</h3>
+<p><br></p>
+<h3><strong> 5. Remarques</strong></h3>
 <ul>
 <li>
-<p>Un container avec ssh n'est pas forcément nécessaire. Si il y a bash dans le container, on peut faire <code>docker exec -it nom_du_container bash</code> pour se connecter dans un container qui est démarré.</p>
+<p>Un container avec ssh n'est pas forcément nécessaire.</p>
+<p>Si il y a bash dans le container, on peut faire <code>docker exec -it nom_du_container bash</code> pour se connecter dans un container qui est démarré.</p>
 </li>
 <li>
-<p>Je peux lancer mon container pour être servi par traefik afin de ne pas avoir à mapper le port 80 du container. Voilà la commande à utiliser:</p>
+<p>Il est possible de lancer le container pour être servi par Ttraefik afin de ne pas avoir à exposer directement le port 80 du container sur le port 8080 de la machine de développement. Il faut pour que cela fonctionne mettre le container dans le même réseau que celui de Traefik (<code>traefik-net</code>) et activé quelques labels pour les règles de reverse-proxy.</p>
+<p>Voilà la commande à utiliser:</p>
 </li>
 </ul>
 <div class="highlight"><pre><span></span>docker run -d <span class="se">\</span>
   -p <span class="m">2222</span>:22 <span class="se">\</span>
   --mount <span class="nv">type</span><span class="o">=</span>bind,source<span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">&quot;</span>/site_files,target<span class="o">=</span>/site_files <span class="se">\</span>
   --name nginx_ssh <span class="se">\</span>
-  --network<span class="o">=</span>traefik-net <span class="se">\</span>
+  --network traefik-net <span class="se">\</span>
   --label traefik.enable<span class="o">=</span><span class="nb">true</span> <span class="se">\</span>
   --label traefik.frontend.entryPoints<span class="o">=</span>http <span class="se">\</span>
   --label traefik.frontend.rule<span class="o">=</span>Host:nginx.charloup.test <span class="se">\</span>
@@ -294,7 +331,7 @@ NB : cette commande lancera dans un même processus (que docker peut suivre) à 
 </pre></div>
 
 
-<p>et on vérifie que cela fonctionne avec <code>curl -H "Host:nginx.charloup.test" localhost</code></p>
+<p>Et pour vérifier que cela fonctionne : <code>curl -H "Host:nginx.charloup.test" localhost</code></p>
 <hr>
   </div>
   <div class="tag-cloud">
