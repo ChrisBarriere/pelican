@@ -250,14 +250,17 @@
 <p>de récupérer la box generic/debian9 pour le provider hyperv</p>
 </li>
 <li>
+<p>de créer le répertoire des projets si il n'existe pas</p>
+</li>
+<li>
 <p>de lancer la machine via vagrant et de la configurer :</p>
 <ul>
-<li>via le shell pour la résolution de nom</li>
+<li>via le shell pour la résolution de nom et l'installation de pip puis ansible</li>
 <li>via ansible_local pour configurer le nom d'hôte, le fqdn, l'ip, le ntp, la locale, installer git, des éditeurs de texte (vim, nano), le proxy Cntlm et Docker</li>
 </ul>
 </li>
 <li>
-<p>de redémarrer la machine et de la provisionner avec les services suivants :</p>
+<p>de configurer le proxy pour les nouveaux services (nécessaire car docker vient juste d'être installé) et de la provisionner avec les services suivants :</p>
 <ul>
 <li>Registry Docker</li>
 <li>Reverse proxy Traefik</li>
@@ -265,7 +268,6 @@
 </ul>
 </li>
 </ul>
-<p>NB : Lors du premier up de la machine, Vagrant posera une question pour savoir quel switch utilisé pour la machine virtuelle. Il faudra donc choisir <strong>Vagrant</strong> qui est le switch qui a été créé à l'étape précdente.</p>
 <p><br><br></p>
 <p><strong> 3.4 Script à lancer en cas de modification de connexion internet et de proxy </strong></p>
 <p>Il suffit de modifier les variables <code>$env:EXTERNAL_CONNECTION_NAME</code>, <code>$env:EXTERNAL_PROXY_URL</code> et <code>$env:EXTERNAL_PROXY_NO_PROXY_RULES</code> dans le fichier <code>powershell\.env.ps1</code> et ensuite de lancer un script :</p>
@@ -384,13 +386,20 @@ Le plugin hostmanager permet de mettre à jour automatiquement le fichier hosts 
 
 
 <p><br><br>
+Il n'est pas pssible de configurer finement le réseau avec le provide hyperv (limitation de Vagrant)</p>
+<p>Mais il est quand même possible de préciser le switch à utiliser pour automatiser l'installation (sinon Vagrant nous demande de chosir parmi une liste de switch)</p>
+<div class="highlight"><pre><span></span><span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">network</span> <span class="s2">&quot;public_network&quot;</span><span class="p">,</span> <span class="ss">bridge</span><span class="p">:</span> <span class="s2">&quot;Vagrant&quot;</span>
+</pre></div>
+
+
+<p><br><br>
 Je vais monter deux répertoires de ma machine hôte dans ma machine virtuelle (le répertoire courant pour notamment pouvoir faire du provisioning via ansible_local et un répertoire pour mes futurs projets).</p>
 <p>Il s'agit dans les deux cas de répertoire de type smb (du coup à la création de la machine il faudra un peu de temps à la machine pour installer cifs). Je choisis smb car il faut partager  entre une machine windows 10 et une machine linux.</p>
 <p>Je monte avec un uid et un gid à 1000 (forcés) dans la machine hôte car il s'agit de l'utilisateur vagrant dans ma debian (qui sera l'utilisateur que j'utiliserai par défaut).</p>
 <div class="highlight"><pre><span></span><span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">synced_folder</span> <span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;/vagrant&quot;</span><span class="p">,</span> <span class="ss">type</span><span class="p">:</span> <span class="s2">&quot;smb&quot;</span><span class="p">,</span>
   <span class="ss">smb_password</span><span class="p">:</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;SMB_PASSWORD&#39;</span><span class="o">]</span><span class="p">,</span> <span class="ss">smb_username</span><span class="p">:</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;SMB_USERNAME&#39;</span><span class="o">]</span><span class="p">,</span> <span class="ss">mount_options</span><span class="p">:</span> <span class="o">[</span><span class="s2">&quot;iocharset=utf8&quot;</span><span class="p">,</span><span class="s2">&quot;uid=1000&quot;</span><span class="p">,</span><span class="s2">&quot;gid=1000&quot;</span><span class="p">,</span><span class="s2">&quot;forcegid&quot;</span><span class="p">,</span><span class="s2">&quot;forceuid&quot;</span><span class="p">,</span><span class="s2">&quot;dynperm&quot;</span><span class="o">]</span>
-<span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">synced_folder</span> <span class="s2">&quot;../myprojects&quot;</span><span class="p">,</span> <span class="s2">&quot;/myprojects&quot;</span><span class="p">,</span> <span class="ss">type</span><span class="p">:</span> <span class="s2">&quot;smb&quot;</span><span class="p">,</span>
-      <span class="ss">smb_password</span><span class="p">:</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;SMB_PASSWORD&#39;</span><span class="o">]</span><span class="p">,</span> <span class="ss">smb_username</span><span class="p">:</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;SMB_USERNAME&#39;</span><span class="o">]</span><span class="p">,</span> <span class="ss">mount_options</span><span class="p">:</span> <span class="o">[</span><span class="s2">&quot;iocharset=utf8&quot;</span><span class="p">,</span><span class="s2">&quot;uid=1000&quot;</span><span class="p">,</span><span class="s2">&quot;gid=1000&quot;</span><span class="p">,</span><span class="s2">&quot;forcegid&quot;</span><span class="p">,</span><span class="s2">&quot;forceuid&quot;</span><span class="p">,</span><span class="s2">&quot;dynperm&quot;</span><span class="p">,</span><span class="s2">&quot;mfsymlinks&quot;</span><span class="o">]</span>
+<span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">synced_folder</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;PROJECTS_DIRECTORY&#39;</span><span class="o">]</span><span class="p">,</span> <span class="s2">&quot;/myprojects&quot;</span><span class="p">,</span> <span class="ss">type</span><span class="p">:</span> <span class="s2">&quot;smb&quot;</span><span class="p">,</span>
+  <span class="ss">smb_password</span><span class="p">:</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;SMB_PASSWORD&#39;</span><span class="o">]</span><span class="p">,</span> <span class="ss">smb_username</span><span class="p">:</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;SMB_USERNAME&#39;</span><span class="o">]</span><span class="p">,</span> <span class="ss">mount_options</span><span class="p">:</span> <span class="o">[</span><span class="s2">&quot;iocharset=utf8&quot;</span><span class="p">,</span><span class="s2">&quot;uid=1000&quot;</span><span class="p">,</span><span class="s2">&quot;gid=1000&quot;</span><span class="p">,</span><span class="s2">&quot;forcegid&quot;</span><span class="p">,</span><span class="s2">&quot;forceuid&quot;</span><span class="p">,</span><span class="s2">&quot;dynperm&quot;</span><span class="p">,</span><span class="s2">&quot;mfsymlinks&quot;</span><span class="o">]</span>
 </pre></div>
 
 
@@ -425,7 +434,7 @@ La machine est ensuite provisionnée via ansible_local, toujours une seule fois 
 
 <p><br><br>
 Ensuite, il s'agit d'un provisionnement qui ne s'exécute qu'à la demande (<code>run: "never"</code>) et qui permet de déployer le reverse_proxy traefik, la registry docker et le serveur smtp Mailhog sous forme de container docker.</p>
-<p>Ce provisionnement est lancé après le premier up de la machine et un reload pour être sûr que docker et cntlm sont présents et paramétrés.</p>
+<p>Ce provisionnement est lancé après le premier up de la machine pour être sûr que docker et cntlm sont présents et paramétrés via proxyconf</p>
 <p>Les répertoires de données des containers sont des volumes docker de type "bind mount" qui sont dans un répertoire partagé entre la machine hôte et la machine virtuelle. Comme ça, ma registry docker est déjà alimentée si je dois détruire et créer à nouveau ma machine.</p>
 <p>Les containers sont lancés avec l'option <code>restart: always</code> pour pouvoir être lancés automatiquement au démarrage de la machine (comme des services).</p>
 <div class="highlight"><pre><span></span><span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">provision</span> <span class="s2">&quot;ansible_local_services&quot;</span><span class="p">,</span> <span class="ss">type</span><span class="p">:</span><span class="s2">&quot;ansible_local&quot;</span><span class="p">,</span> <span class="ss">run</span><span class="p">:</span> <span class="s2">&quot;never&quot;</span> <span class="k">do</span> <span class="o">|</span><span class="n">ansible</span><span class="o">|</span>

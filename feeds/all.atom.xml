@@ -397,14 +397,17 @@ Ok pour la connexion ssh en root dans le container.&lt;/p&gt;
 &lt;p&gt;de récupérer la box generic/debian9 pour le provider hyperv&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
+&lt;p&gt;de créer le répertoire des projets si il n'existe pas&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
 &lt;p&gt;de lancer la machine via vagrant et de la configurer :&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;via le shell pour la résolution de nom&lt;/li&gt;
+&lt;li&gt;via le shell pour la résolution de nom et l'installation de pip puis ansible&lt;/li&gt;
 &lt;li&gt;via ansible_local pour configurer le nom d'hôte, le fqdn, l'ip, le ntp, la locale, installer git, des éditeurs de texte (vim, nano), le proxy Cntlm et Docker&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;de redémarrer la machine et de la provisionner avec les services suivants :&lt;/p&gt;
+&lt;p&gt;de configurer le proxy pour les nouveaux services (nécessaire car docker vient juste d'être installé) et de la provisionner avec les services suivants :&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;Registry Docker&lt;/li&gt;
 &lt;li&gt;Reverse proxy Traefik&lt;/li&gt;
@@ -412,7 +415,6 @@ Ok pour la connexion ssh en root dans le container.&lt;/p&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;NB : Lors du premier up de la machine, Vagrant posera une question pour savoir quel switch utilisé pour la machine virtuelle. Il faudra donc choisir &lt;strong&gt;Vagrant&lt;/strong&gt; qui est le switch qui a été créé à l'étape précdente.&lt;/p&gt;
 &lt;p&gt;&lt;br&gt;&lt;br&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt; 3.4 Script à lancer en cas de modification de connexion internet et de proxy &lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;Il suffit de modifier les variables &lt;code&gt;$env:EXTERNAL_CONNECTION_NAME&lt;/code&gt;, &lt;code&gt;$env:EXTERNAL_PROXY_URL&lt;/code&gt; et &lt;code&gt;$env:EXTERNAL_PROXY_NO_PROXY_RULES&lt;/code&gt; dans le fichier &lt;code&gt;powershell\.env.ps1&lt;/code&gt; et ensuite de lancer un script :&lt;/p&gt;
@@ -531,13 +533,20 @@ Le plugin hostmanager permet de mettre à jour automatiquement le fichier hosts 
 
 
 &lt;p&gt;&lt;br&gt;&lt;br&gt;
+Il n'est pas pssible de configurer finement le réseau avec le provide hyperv (limitation de Vagrant)&lt;/p&gt;
+&lt;p&gt;Mais il est quand même possible de préciser le switch à utiliser pour automatiser l'installation (sinon Vagrant nous demande de chosir parmi une liste de switch)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;network&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;public_network&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;bridge&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Vagrant&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;br&gt;&lt;br&gt;
 Je vais monter deux répertoires de ma machine hôte dans ma machine virtuelle (le répertoire courant pour notamment pouvoir faire du provisioning via ansible_local et un répertoire pour mes futurs projets).&lt;/p&gt;
 &lt;p&gt;Il s'agit dans les deux cas de répertoire de type smb (du coup à la création de la machine il faudra un peu de temps à la machine pour installer cifs). Je choisis smb car il faut partager  entre une machine windows 10 et une machine linux.&lt;/p&gt;
 &lt;p&gt;Je monte avec un uid et un gid à 1000 (forcés) dans la machine hôte car il s'agit de l'utilisateur vagrant dans ma debian (qui sera l'utilisateur que j'utiliserai par défaut).&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;synced_folder&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;.&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;/vagrant&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;type&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;smb&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
   &lt;span class="ss"&gt;smb_password&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;SMB_PASSWORD&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;smb_username&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;SMB_USERNAME&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;mount_options&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;iocharset=utf8&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;uid=1000&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;gid=1000&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;forcegid&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;forceuid&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;dynperm&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
-&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;synced_folder&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;../myprojects&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;/myprojects&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;type&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;smb&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-      &lt;span class="ss"&gt;smb_password&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;SMB_PASSWORD&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;smb_username&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;SMB_USERNAME&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;mount_options&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;iocharset=utf8&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;uid=1000&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;gid=1000&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;forcegid&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;forceuid&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;dynperm&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;mfsymlinks&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;synced_folder&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;PROJECTS_DIRECTORY&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;/myprojects&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;type&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;smb&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+  &lt;span class="ss"&gt;smb_password&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;SMB_PASSWORD&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;smb_username&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="no"&gt;ENV&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;SMB_USERNAME&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;mount_options&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;iocharset=utf8&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;uid=1000&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;gid=1000&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;forcegid&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;forceuid&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;dynperm&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;mfsymlinks&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -572,7 +581,7 @@ La machine est ensuite provisionnée via ansible_local, toujours une seule fois 
 
 &lt;p&gt;&lt;br&gt;&lt;br&gt;
 Ensuite, il s'agit d'un provisionnement qui ne s'exécute qu'à la demande (&lt;code&gt;run: "never"&lt;/code&gt;) et qui permet de déployer le reverse_proxy traefik, la registry docker et le serveur smtp Mailhog sous forme de container docker.&lt;/p&gt;
-&lt;p&gt;Ce provisionnement est lancé après le premier up de la machine et un reload pour être sûr que docker et cntlm sont présents et paramétrés.&lt;/p&gt;
+&lt;p&gt;Ce provisionnement est lancé après le premier up de la machine pour être sûr que docker et cntlm sont présents et paramétrés via proxyconf&lt;/p&gt;
 &lt;p&gt;Les répertoires de données des containers sont des volumes docker de type "bind mount" qui sont dans un répertoire partagé entre la machine hôte et la machine virtuelle. Comme ça, ma registry docker est déjà alimentée si je dois détruire et créer à nouveau ma machine.&lt;/p&gt;
 &lt;p&gt;Les containers sont lancés avec l'option &lt;code&gt;restart: always&lt;/code&gt; pour pouvoir être lancés automatiquement au démarrage de la machine (comme des services).&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vm&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;provision&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;ansible_local_services&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;type&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;ansible_local&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;run&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;never&amp;quot;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;ansible&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;
