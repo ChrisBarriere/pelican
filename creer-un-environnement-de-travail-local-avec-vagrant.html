@@ -408,7 +408,6 @@ J'installe également pip et ansible pendant cette phase (version 2.8.0 qui est 
 
 <p><br><br>
 La machine est ensuite provisionnée via ansible_local, toujours une seule fois au premier démarrage.</p>
-<p>Ansible est installé via pip (et je dois gérer l'éventuel proxy car cntlm n'est pas encore disponible).</p>
 <p>Ce provisonnement lance le playbook init.yaml qui permet de configurer la locale, la timezone, gérer le fichier /etc/hosts puis installer divers packages (git, editeurs, curl) et enfin l'installation de cntlm et docker.</p>
 <div class="highlight"><pre><span></span><span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">provision</span> <span class="s2">&quot;ansible_local_init&quot;</span><span class="p">,</span> <span class="ss">type</span><span class="p">:</span><span class="s2">&quot;ansible_local&quot;</span><span class="p">,</span> <span class="ss">run</span><span class="p">:</span> <span class="s2">&quot;once&quot;</span> <span class="k">do</span> <span class="o">|</span><span class="n">ansible</span><span class="o">|</span>
   <span class="n">ansible</span><span class="o">.</span><span class="n">config_file</span><span class="o">=</span> <span class="s2">&quot;/vagrant/provisioning/ansible/.ansible.cfg&quot;</span>
