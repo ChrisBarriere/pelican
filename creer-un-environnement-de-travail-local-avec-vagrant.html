@@ -378,7 +378,7 @@ Le plugin hostmanager permet de mettre à jour automatiquement le fichier hosts 
   <span class="n">config</span><span class="o">.</span><span class="n">hostmanager</span><span class="o">.</span><span class="n">manage_host</span> <span class="o">=</span> <span class="kp">true</span>
   <span class="n">config</span><span class="o">.</span><span class="n">hostmanager</span><span class="o">.</span><span class="n">manage_guest</span> <span class="o">=</span> <span class="kp">false</span>
   <span class="n">config</span><span class="o">.</span><span class="n">hostmanager</span><span class="o">.</span><span class="n">ignore_private_ip</span> <span class="o">=</span> <span class="kp">false</span>
-  <span class="n">config</span><span class="o">.</span><span class="n">hostmanager</span><span class="o">.</span><span class="n">aliases</span> <span class="o">=</span> <span class="o">[</span><span class="s1">&#39;registry.docker.&#39;</span> <span class="o">+</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;DEV_DOMAIN&#39;</span><span class="o">]</span><span class="p">,</span> <span class="s1">&#39;traefik.&#39;</span> <span class="o">+</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;DEV_DOMAIN&#39;</span><span class="o">]</span><span class="p">,</span> <span class="s1">&#39;mailhog.&#39;</span> <span class="o">+</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;DEV_DOMAIN&#39;</span><span class="o">]]</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">hostmanager</span><span class="o">.</span><span class="n">aliases</span> <span class="o">=</span> <span class="o">[</span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;DEV_DOMAIN&#39;</span><span class="o">]</span><span class="p">,</span> <span class="s1">&#39;registry.docker.&#39;</span> <span class="o">+</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;DEV_DOMAIN&#39;</span><span class="o">]</span><span class="p">,</span> <span class="s1">&#39;traefik.&#39;</span> <span class="o">+</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;DEV_DOMAIN&#39;</span><span class="o">]</span><span class="p">,</span> <span class="s1">&#39;mailhog.&#39;</span> <span class="o">+</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;DEV_DOMAIN&#39;</span><span class="o">]]</span>
 <span class="k">end</span>
 </pre></div>
 
@@ -397,10 +397,11 @@ Je vais monter deux répertoires de ma machine hôte dans ma machine virtuelle (
 <p><br><br>
 La machine est provisionnée tout d'abord via le shell, une seule fois au premier démarrage.</p>
 <p>Cela me permet de mettre à jour le serveur de nom avec l'adresse 192.168.137.1 (qui est l'interface de ma machine hôte dans le réseau Vagrant).<br>
-Je mets également à jour le domaine de recherche local.</p>
+Je mets également à jour le domaine de recherche local.<br>
+J'installe également pip et ansible pendant cette phase (version 2.8.0 qui est la dernière version à ce jour).</p>
 <div class="highlight"><pre><span></span><span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">provision</span> <span class="s2">&quot;shell_init&quot;</span><span class="p">,</span> <span class="ss">type</span><span class="p">:</span><span class="s2">&quot;shell&quot;</span><span class="p">,</span> <span class="ss">run</span><span class="p">:</span> <span class="s2">&quot;once&quot;</span> <span class="k">do</span> <span class="o">|</span><span class="n">shell</span><span class="o">|</span>
-  <span class="n">shell</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;./provisioning/shell/updateresolvconf.sh&quot;</span>
-  <span class="n">shell</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="o">[</span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;DEV_DOMAIN&#39;</span><span class="o">]]</span>
+  <span class="n">shell</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;./provisioning/shell/init.sh&quot;</span>
+  <span class="n">shell</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="o">[</span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;DEV_DOMAIN&#39;</span><span class="o">]</span><span class="p">,</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;EXTERNAL_PROXY_URL&#39;</span><span class="o">]]</span>
 <span class="k">end</span>
 </pre></div>
 
@@ -408,16 +409,10 @@ Je mets également à jour le domaine de recherche local.</p>
 <p><br><br>
 La machine est ensuite provisionnée via ansible_local, toujours une seule fois au premier démarrage.</p>
 <p>Ansible est installé via pip (et je dois gérer l'éventuel proxy car cntlm n'est pas encore disponible).</p>
-<p>Je choisis la version 2.8.0 qui est la dernière version à ce jour.</p>
 <p>Ce provisonnement lance le playbook init.yaml qui permet de configurer la locale, la timezone, gérer le fichier /etc/hosts puis installer divers packages (git, editeurs, curl) et enfin l'installation de cntlm et docker.</p>
 <div class="highlight"><pre><span></span><span class="n">config</span><span class="o">.</span><span class="n">vm</span><span class="o">.</span><span class="n">provision</span> <span class="s2">&quot;ansible_local_init&quot;</span><span class="p">,</span> <span class="ss">type</span><span class="p">:</span><span class="s2">&quot;ansible_local&quot;</span><span class="p">,</span> <span class="ss">run</span><span class="p">:</span> <span class="s2">&quot;once&quot;</span> <span class="k">do</span> <span class="o">|</span><span class="n">ansible</span><span class="o">|</span>
   <span class="n">ansible</span><span class="o">.</span><span class="n">config_file</span><span class="o">=</span> <span class="s2">&quot;/vagrant/provisioning/ansible/.ansible.cfg&quot;</span>
   <span class="n">ansible</span><span class="o">.</span><span class="n">playbook</span> <span class="o">=</span> <span class="s2">&quot;/vagrant/provisioning/ansible/init.yaml&quot;</span>
-  <span class="n">ansible</span><span class="o">.</span><span class="n">install_mode</span> <span class="o">=</span> <span class="s2">&quot;pip&quot;</span>
-  <span class="k">if</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;EXTERNAL_PROXY_URL&#39;</span><span class="o">]</span> <span class="o">!=</span> <span class="s2">&quot;DIRECT&quot;</span>
-    <span class="n">ansible</span><span class="o">.</span><span class="n">pip_args</span> <span class="o">=</span> <span class="s2">&quot;--proxy &quot;</span> <span class="o">+</span> <span class="no">ENV</span><span class="o">[</span><span class="s2">&quot;EXTERNAL_PROXY_URL&quot;</span><span class="o">]</span>
-  <span class="k">end</span>
-  <span class="n">ansible</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;2.8.0&quot;</span>
   <span class="n">ansible</span><span class="o">.</span><span class="n">compatibility_mode</span> <span class="o">=</span> <span class="s2">&quot;2.0&quot;</span>
   <span class="n">ansible</span><span class="o">.</span><span class="n">extra_vars</span> <span class="o">=</span> <span class="p">{</span>
     <span class="ss">localdomain</span><span class="p">:</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;DEV_DOMAIN&#39;</span><span class="o">]</span><span class="p">,</span>
