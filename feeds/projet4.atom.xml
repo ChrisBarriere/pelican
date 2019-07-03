@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Le calepin de Charloup - projet4</title><link href="https://chrisbarriere.github.io/pelican/" rel="alternate"></link><link href="https://chrisbarriere.github.io/pelican/feeds/projet4.atom.xml" rel="self"></link><id>https://chrisbarriere.github.io/pelican/</id><updated>2019-06-06T15:27:00+02:00</updated><subtitle>Mon premier site Pelican</subtitle><entry><title>Automatiser la publication de son blog</title><link href="https://chrisbarriere.github.io/pelican/automatiser-la-publication-de-son-blog.html" rel="alternate"></link><published>2019-06-06T15:27:00+02:00</published><updated>2019-06-06T15:27:00+02:00</updated><author><name>Charloup</name></author><id>tag:chrisbarriere.github.io,2019-06-06:/pelican/automatiser-la-publication-de-son-blog.html</id><summary type="html">&lt;p&gt;C'est parti pour mon deuxième projet technique qui consiste à publier un blog de façon automatique à partir d'articles rédigés en markdown.&lt;/p&gt;
+&lt;p&gt;Ca commence à parler d'automatisation !!!&lt;/p&gt;
+&lt;p&gt;Voilà la commande exacte :&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;on veut écrire les articles en Markdown&lt;/li&gt;
+&lt;li&gt;on veut générer un site web statique à partir des fichiers Markdown …&lt;/li&gt;&lt;/ul&gt;</summary><content type="html">&lt;p&gt;C'est parti pour mon deuxième projet technique qui consiste à publier un blog de façon automatique à partir d'articles rédigés en markdown.&lt;/p&gt;
+&lt;p&gt;Ca commence à parler d'automatisation !!!&lt;/p&gt;
+&lt;p&gt;Voilà la commande exacte :&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;on veut écrire les articles en Markdown&lt;/li&gt;
+&lt;li&gt;on veut générer un site web statique à partir des fichiers Markdown&lt;/li&gt;
+&lt;li&gt;on veut versionner les articles avec Gitlab&lt;/li&gt;
+&lt;li&gt;on veut construire le site statique à chaque “push”&lt;/li&gt;
+&lt;li&gt;on veut déployer le site sur la partie hébergement statique de Github.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h3&gt;&lt;strong&gt;1. Solution retenue&lt;/strong&gt;&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Pour le markdown, rien de spécial, il suffit de connaître un petit peu la syntaxe qui permet d'écrire du texte structuré facilement transformable en HTML.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Pour pouvoir générer un site web statique à partir d'articles écrits en markdown, j'utiliserai Pelican, un outil écrit en python qui est axectement fait pour ça.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;on utilisera Gitlab-CE dans notre machhine de développement pour stocker et versionner dans un repository les articles du blog.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;on utilisera la partie CI/CD de Gitlab pour construire le site statique à chaque push avec des Gitlab Runner qui exécuteront des jobs selon un pipeline.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Enfin, le site statique généré sera déployé sur les Github pages (là je suis un peu allé plus loinque la demande et je vais également automatisé ce déploiement sur Github Pages).&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h3&gt;&lt;strong&gt;2. Gitlab-CE&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;Gitlab Community Edition est un logiciel opensource qui permet de gérer tout le cycle de vie DevOps. Il embarque différents outils:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;gestion de version dans des repository&lt;/li&gt;
+&lt;li&gt;Wiki&lt;/li&gt;
+&lt;li&gt;bugtracker&lt;/li&gt;
+&lt;li&gt;intégration et déploiement continue&lt;/li&gt;
+&lt;li&gt;travail collaboratif (utilisateurs, groupes, notions de projets privés ou publics)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Il existe une version Omnibus de GitLab sous Debian qui embarque tous les composants dont dépend GitLab (PostgreSQL, Redis, etc...)&lt;/p&gt;
+&lt;p&gt;Mieux, encore, il existe une version Omnibus pour Docker. C'est donc celle-ci que je vais utiliser en la lançant derrière Traefik.&lt;/p&gt;
+&lt;p&gt;Je commence par récupérer l'image Docker de Gitlab CE et je la mets dans ma registry privée :&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;docker pull gitlab/gitlab-ce:latest
+docker tag gitlab/gitlab-ce:latest registry.docker.charloup.test:5000/gitlab/gitlab-ce:latest
+docker rmi gitlab/gitlab-ce:latest
+docker push registry.docker.charloup.test:5000/gitlab/gitlab-ce:latest
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Je crée des volumes docker pour la persistence des données et pour les logs:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;docker volume create gitlab_logs &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; docker volume create gitlab_data
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Je crée un network docker pour Gitlab CE (comme cela je pourrai rajouter un Gitlab Runner dans le même réseau) :&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;docker network create gitlab-net
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;On utilise un fichier docker-compose.yaml pour lancer un container gitlab-ce :&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;version&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;3.7&amp;quot;&lt;/span&gt;
+&lt;span class="nt"&gt;services&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="nt"&gt;gitlab&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="c1"&gt;# l&amp;#39;image à utiliser&lt;/span&gt;
+    &lt;span class="nt"&gt;image&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;registry.docker.charloup.test:5000/gitlab/gitlab-ce:latest&lt;/span&gt;
+    &lt;span class="c1"&gt;# lancé comme un service&lt;/span&gt;
+    &lt;span class="nt"&gt;restart&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;always&lt;/span&gt;
+    &lt;span class="c1"&gt;# Le nom d&amp;#39;hôte du container&lt;/span&gt;
+    &lt;span class="nt"&gt;hostname&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;gitlab.charloup.test&amp;#39;&lt;/span&gt;
+    &lt;span class="c1"&gt;# le nom docker du container&lt;/span&gt;
+    &lt;span class="nt"&gt;container_name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;gitlab-ce&lt;/span&gt;
+    &lt;span class="c1"&gt;# pas besoin de regisry docker et on branche gitlab sur mailhog pour le serveur smtp&lt;/span&gt;
+    &lt;span class="nt"&gt;environment&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+      &lt;span class="nt"&gt;GITLAB_OMNIBUS_CONFIG&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p p-Indicator"&gt;|&lt;/span&gt;
+        &lt;span class="no"&gt;external_url &amp;#39;http://gitlab.charloup.test&amp;#39;&lt;/span&gt;
+        &lt;span class="no"&gt;gitlab_rails[&amp;#39;registry_enabled&amp;#39;] = false&lt;/span&gt;
+        &lt;span class="no"&gt;gitlab_rails[&amp;#39;smtp_enable&amp;#39;] = true&lt;/span&gt;
+        &lt;span class="no"&gt;gitlab_rails[&amp;#39;smtp_address&amp;#39;] = &amp;quot;mailhog.charloup.test&amp;quot;&lt;/span&gt;
+        &lt;span class="no"&gt;gitlab_rails[&amp;#39;smtp_port&amp;#39;] = 1025&lt;/span&gt;
+    &lt;span class="c1"&gt;# si on veut faire du ssh pour du push et du pull on aura besoin de mapper le port ssh&lt;/span&gt;
+    &lt;span class="nt"&gt;ports&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+      &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;2222:22&amp;#39;&lt;/span&gt;
+    &lt;span class="c1"&gt;# les volumes pour la persistence&lt;/span&gt;
+    &lt;span class="nt"&gt;volumes&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+      &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;./persistence/config:/etc/gitlab&lt;/span&gt;
+      &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;gitlab_logs:/var/log/gitlab&lt;/span&gt;
+      &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;gitlab_data:/var/opt/gitlab&lt;/span&gt;
+    &lt;span class="c1"&gt;# les réseaux auxquels est attaché le container (un pour servir la webui via traefik, l&amp;#39;autre pour nos gitlab runners qui seront dans le même réseau)&lt;/span&gt;
+    &lt;span class="nt"&gt;networks&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+      &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;traefik-net&lt;/span&gt;
+      &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;gitlab-net&lt;/span&gt;
+    &lt;span class="c1"&gt;# les labels pour que Traefik puisse gérer le container&lt;/span&gt;
+    &lt;span class="nt"&gt;labels&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+      &lt;span class="c1"&gt;# Enable traefik rules on container&lt;/span&gt;
+      &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;traefik.enable=true&amp;quot;&lt;/span&gt;
+
+      &lt;span class="c1"&gt;# Rules&lt;/span&gt;
+      &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;traefik.frontend.entryPoints=http&amp;quot;&lt;/span&gt;
+      &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;traefik.frontend.rule=Host:gitlab.charloup.test&amp;quot;&lt;/span&gt;
+      &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;traefik.port=80&amp;quot;&lt;/span&gt;
+      &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;traefik.backend=gitlab&amp;quot;&lt;/span&gt;
+
+      &lt;span class="c1"&gt;# Traefik docker overlay network&lt;/span&gt;
+      &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;traefik.docker.network=traefik-net&amp;quot;&lt;/span&gt;
+
+&lt;span class="c1"&gt;# les volumes et les réseaux de type externes car créés précédemment&lt;/span&gt;
+&lt;span class="nt"&gt;networks&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="nt"&gt;traefik-net&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="nt"&gt;external&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;true&lt;/span&gt;
+  &lt;span class="nt"&gt;gitlab-net&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="nt"&gt;external&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;true&lt;/span&gt;
+&lt;span class="nt"&gt;volumes&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="nt"&gt;gitlab_data&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="nt"&gt;external&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;true&lt;/span&gt;
+  &lt;span class="nt"&gt;gitlab_logs&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="nt"&gt;external&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;true&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;On lance donc le container gitlab-ce à l'aide de ce fichier docker-compose (option -d pour se détacjer de la sortie standard) :&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;docker-compose up -d
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Le démarrage prend quelques minutes, on peut voir où on en est :&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;docker logs -f gitlab-ce
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Je vérifie que l'envoi de mail fonctionne :&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;lancer une console dans le conatiner gitlab: &lt;code&gt;docker exec -it gitlab-ce gitlab-rails console&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;lancer une commande &lt;code&gt;Notify.test_email('destination_email@address.com', 'Message Subject', 'Message Body').deliver_now&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;on vérifie dans la webui de mailhog ( &lt;a href="http://mailhog.charloup.test"&gt;http://mailhog.charloup.test&lt;/a&gt; ) qu'on a bien le message&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Je peux maintenant accèder à la webui de gitlab ( &lt;a href="http://gitlab.charloup.test"&gt;http://gitlab.charloup.test&lt;/a&gt; ) et initialiser le mot de passe du compte root&lt;/p&gt;
+&lt;p&gt;Je crée un groupe &lt;code&gt;charloup&lt;/code&gt; de type internal dans lequel je pourrai créer mon projet pour mon blog.&lt;/p&gt;
+&lt;p&gt;Dans la configuration CI/CD du groupe ( &lt;a href="http://gitlab.charloup.test/groups/charloup/-/settings/ci_cd"&gt;http://gitlab.charloup.test/groups/charloup/-/settings/ci_cd&lt;/a&gt; ), je désactive Auto DevOps et je récupère le token d'enregistrement &lt;token-group-charloup&gt; que je pourrai utiliser pour enregistrer des Gitlab Runners associés à ce groupe.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h3&gt;&lt;strong&gt;3. Gitlab Runner&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;Gitalbe permet d'autmatiser l'intégration et le déploiement. Voilà son fonctionnement :&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;on doit avoir du code applicatif dans un référentiel Git.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;On doit également avoir un fichier .gitlab-ci.yaml à la racine du référentiel. Ce fichier permettra de définir l'ensemble des actions à réaliser lors d'un push ou d'un merge dans une branche via la définition de scripts à exécuter.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Ces scripts sont groupés dans des jobs et l'ensemble des jobs definit un pipeline d'exécution qui sera lancé à chaque "push".&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Les jobs du pipeline sont exécutés par l'outil Gitlab Runner&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Gitlab CI/CD permet également d'avoir une vue de ce qu'il s'est passé durant l'exécution des jobs. Il est également possible de revenir en arrière si nécessaire.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Donc pour pouvoir utiliser l'automatisation, je vais devoir enregistré un Gitlab-Runner pour mon groupe dans Gitlab.&lt;/p&gt;
+&lt;p&gt;Gitlab Runner est égelement disponible sous forme de container docker. C'est comme ça que je vais le déployer.&lt;/p&gt;
+&lt;p&gt;Je commence par récupérer l'image Docker de Gitlab CE et je la mets dans ma registry privée:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;docker pull gitlab/gitlab-runner:latest
+docker tag gitlab/gitlab-runner:latest registry.docker.charloup.test:5000/gitlab/gitlab-runner:latest
+docker rmi gitlab/gitlab-runner:latest
+docker push registry.docker.charloup.test:5000/gitlab/gitlab-runner:latest
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;On utilise un fichier docker-compose.yaml pour lancer un container Gitlab Runenr :&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;version&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;3.7&amp;quot;&lt;/span&gt;
+&lt;span class="nt"&gt;services&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="nt"&gt;gitlab-runner&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="c1"&gt;# l&amp;#39;image à utiliser&lt;/span&gt;
+    &lt;span class="nt"&gt;image&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;registry.docker.charloup.test:5000/gitlab/gitlab-runner:latest&lt;/span&gt;
+    &lt;span class="c1"&gt;# lancé comme un service&lt;/span&gt;
+    &lt;span class="nt"&gt;restart&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;always&lt;/span&gt;
+    &lt;span class="c1"&gt;# le nom docker du container&lt;/span&gt;
+    &lt;span class="nt"&gt;container_name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;gitlab-runner&lt;/span&gt;
+    &lt;span class="c1"&gt;# les volumes pour la persistence&lt;/span&gt;
+    &lt;span class="nt"&gt;volumes&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+      &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;./persistence/config:/etc/gitlab-runner&lt;/span&gt;
+      &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;./persistence/home:/home/gitlab-runner&lt;/span&gt;
+      &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;/var/run/docker.sock:/var/run/docker.sock&lt;/span&gt;
+    &lt;span class="c1"&gt;# attaché au même réseau que gitlab  pour qu&amp;#39;ils puissent se voir&lt;/span&gt;
+    &lt;span class="nt"&gt;networks&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+      &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;gitlab-net&lt;/span&gt;
+&lt;span class="c1"&gt;# le réseau de type externe car créé précédemment&lt;/span&gt;
+&lt;span class="nt"&gt;networks&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="nt"&gt;gitlab-net&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="nt"&gt;external&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;true&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;On lance donc le container gitlab-runner à l'aide de ce fichier docker-compose.yaml (option -d pour se détacjer de la sortie standard) :&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;docker-compose up -d
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;On enregistre le runner à l'aide du token du groupe charloup :&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;docker&lt;/span&gt; &lt;span class="k"&gt;exec&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;it&lt;/span&gt; &lt;span class="nv"&gt;gitlab&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;runner&lt;/span&gt; &lt;span class="nv"&gt;gitlab&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;runner&lt;/span&gt; &lt;span class="nv"&gt;register&lt;/span&gt; &lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="nv"&gt;non&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;interactive&lt;/span&gt; &lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="nv"&gt;url&lt;/span&gt; &lt;span class="nv"&gt;http&lt;/span&gt;:&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="nv"&gt;gitlab&lt;/span&gt;.&lt;span class="nv"&gt;charloup&lt;/span&gt;.&lt;span class="nv"&gt;test&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="nv"&gt;registration&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;token&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nv"&gt;token&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;group&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;charloup&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="nv"&gt;description&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;Gitlab Runner pour le groupe Charloup&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="nv"&gt;executor&lt;/span&gt; &lt;span class="nv"&gt;docker&lt;/span&gt; &lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="nv"&gt;docker&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;image&lt;/span&gt; &lt;span class="nv"&gt;docker&lt;/span&gt;:&lt;span class="nv"&gt;latest&lt;/span&gt; &lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="nv"&gt;run&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;untagged&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;true&lt;/span&gt; &lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="nv"&gt;locked&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;false&lt;/span&gt; &lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="nv"&gt;docker&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;volumes&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;var&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;run&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;docker&lt;/span&gt;.&lt;span class="nv"&gt;sock&lt;/span&gt;:&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;var&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;run&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;docker&lt;/span&gt;.&lt;span class="nv"&gt;sock&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Mon runner aura besoin d'exécuter des commandes docker (--executor docker); Pour cela il a besoin d'une image qui contient docker (docker:latest) et également de pouvoir voir le socket docker (--docker-volumes /var/run/docker.sock:/var/run/docker.sock)&lt;/p&gt;</content><category term="gitlab-ce"></category><category term="gitlab-runner"></category><category term="pelican"></category><category term="ci/cd"></category></entry></feed>
